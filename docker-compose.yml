@@ -1,0 +1,44 @@
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend
+
+  frontend:
+    build: ./userManagementFrontend
+    ports:
+      - "5173:5173"
+
+  backend:
+    build: ./userManagmentBackend
+    env_file:
+    - ./userManagmentBackend/.env
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/myapp
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+    command: sh -c " npx prisma migrate deploy prisma && npx ts-node prisma/seed.ts && npm run dev"
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: myapp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+
+volumes:
+  postgres_data:
