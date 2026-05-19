@@ -16,6 +16,8 @@ services:
 
   backend:
     build: ./userManagmentBackend
+    ports:
+    - "3000:3000"
     env_file:
     - ./userManagmentBackend/.env
     depends_on:
