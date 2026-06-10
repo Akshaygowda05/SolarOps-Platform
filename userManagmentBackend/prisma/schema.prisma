@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+ engineType = "client"
+}
+
+
+datasource db {
+  provider = "postgresql"
+   url = env("DATABASE_URL")
+  
+}
+
+
+model RobotData {
+  id                     Int      @id @default(autoincrement())
+  deviceId               String
+  deviceName             String
+  block                  String?
+
+  panelsCleaned          Int
+  rawOdometerValue       BigInt
+  batteryDischargeCycle  Float
+  batteryVoltage         Float
+  applicationId          String
+  tenantId               String
+  
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([deviceId])
+  @@index([createdAt, deviceId])
+  @@index([applicationId])
+  @@index([tenantId])
+}
+
+
+model Runningata{
+  id Int @id @default(autoincrement())
+  applicationId String
+  tenantId String
+  deviceId String
+  autoCount                   Int      @default(0) // after the calculation we will update this field
+  manualCount                 Int      @default(0) // after the calculation we will update this field
+  TotalmanualCount            Int      @default(0)  //this is from robot total manual count
+  TotalautoCount              Int      @default(0)  // this is from robot total auto count
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+
+model User{
+  id Int @id @default(autoincrement())
+  email String @unique
+  password String
+  name String // nameof the user 
+  siteName   String? // this is for the site name which is optional
+  role Role @default(USER)
+  application  ChirpstackApplication ? @relation(fields: [applicationId], references: [chirpstackId])
+  applicationId String?
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+model ChirpstackApplication {
+  id             Int     @id @default(autoincrement())
+  chirpstackId   String  @unique   // ChirpStack application ID
+  name           String
+  description    String?
+
+  tenantId       Int
+  tenant         ChirpstackTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  users          User[]
+  siteConfiguration SiteConfiguration?
+  SchedularData  SchedularData[]   
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+
+model ChirpstackTenant {
+  id            Int     @id @default(autoincrement())
+  chirpstackId  String  @unique   // ChirpStack tenant ID
+  name          String
+  description   String?
+  isActive      Boolean @default(true)
+  lastSyncedAt  DateTime?
+
+  applications  ChirpstackApplication[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SiteConfiguration {
+  id                   Int @id @default(autoincrement())
+  panelWidth            Float @default(1.0)
+  panelsGap             Float @default(0.0)
+  multiplicationFactor  Int @default(1)
+  triggeringAction      Blocktriggering @default(UNICAST)
+  sendTwiceAday         Boolean @default(false)
+  gatewayId             String[]
+
+  applicationId         String @unique
+  application           ChirpstackApplication @relation(fields: [applicationId], references: [chirpstackId], onDelete: Cascade)
+  isConfigured Boolean @default(false)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// this is for the modal for the scheduling
+
+model SchedularData{
+  id Int @id @default(autoincrement()) // this is id assinged
+  time DateTime    // at what time it mis triggering
+  data String  // this is data what i need to send
+  groupName String[] // this is the group only to show for the client
+  groupId String[] // this is important for the actuall to send downlink
+  jobType JobType @default(ONE_TIME) // this is for specifying the type of job
+  application  ChirpstackApplication @relation(fields: [applicationId], references: [chirpstackId], onDelete: Cascade)
+  applicationId    String
+  createdAt     DateTime @default(now()) // when it is created we will geto know
+  updatedAt     DateTime @updatedAt  // once it is updated to the 
+}
+
+model  activeDeviceCount {
+  id Int @id @default(autoincrement())
+  applicationId String
+  tenantId String
+  activeCount Int
+  inactiveCount Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([applicationId])
+}
+
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Blocktriggering {
+  UNICAST
+  MULTICAST
+  BOTH
+}
+
+enum JobType {
+  DAILY
+  ONE_TIME
+}
+
+
+
