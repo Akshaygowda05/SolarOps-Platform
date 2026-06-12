@@ -11,11 +11,11 @@ type Event = {
 };
 
 function getBadgeStyle(type?: string): React.CSSProperties {
-  if (type?.includes("QUEUED")) return { background: "#E6F1FB", color: "#0C447C" };
-  if (type?.includes("GROUP_DOWNLINK")) return { background: "#FCE5D8", color: "#A33C00" };
-  if (type?.includes("SCHEDULER_EXECUTED")) return { background: "#E8DDF5", color: "#5B2A86" };
-  if (type?.includes("ERROR"))  return { background: "#FCEBEB", color: "#A32D2D" };
-  return { background: "var(--color-background-secondary)", color: "var(--color-text-secondary)" };
+  if (type?.includes("QUEUED"))              return { background: "#E6F1FB", color: "#0C447C" };
+  if (type?.includes("GROUP_DOWNLINK"))      return { background: "#FCE5D8", color: "#A33C00" };
+  if (type?.includes("SCHEDULER_EXECUTED"))  return { background: "#E8DDF5", color: "#5B2A86" };
+  if (type?.includes("ERROR"))               return { background: "#FCEBEB", color: "#A32D2D" };
+  return { background: "rgba(22,150,71,0.08)", color: "#169647" };
 }
 
 function formatRelative(ts?: string | number) {
@@ -27,14 +27,13 @@ function formatRelative(ts?: string | number) {
 }
 
 export const ApplicationEvents = () => {
-  const [events, setEvents]       = useState<Event[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [expanded, setExpanded]   = useState<number | null>(null);
+  const [events, setEvents]   = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-       
         const res = await getApplicationLogs();
         setEvents(res.data || []);
       } catch (err) {
@@ -54,99 +53,91 @@ export const ApplicationEvents = () => {
   }, []);
 
   return (
-    <div style={{ fontFamily: "var(--font-sans, system-ui)" }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div style={{ fontFamily: "var(--font-sans, system-ui)", fontSize: 13 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
           <span style={{
-            width: 8, height: 8, borderRadius: "50%",
-            background: loading ? "#888" : "#1D9E75",
+            width: 7, height: 7, borderRadius: "50%",
+            background: loading ? "#aaa" : "#169647",
             display: "inline-block",
-            animation: loading ? "none" : "pulse 1.8s ease-in-out infinite"
           }} />
-          <span style={{ fontSize: 14, fontWeight: 500 }}>Live logs</span>
+          <span style={{ fontSize: 13, fontWeight: 500 }}>Live logs</span>
         </div>
         <span style={{
-          fontSize: 11, padding: "3px 10px", borderRadius: 20,
-          background: "var(--color-background-secondary)",
-          border: "0.5px solid var(--color-border-tertiary)",
-          color: "var(--color-text-tertiary)"
+          fontSize: 10, padding: "2px 8px", borderRadius: 20,
+          background: "rgba(22,150,71,0.08)",
+          color: "#169647", fontWeight: 500,
         }}>
-          {loading ? "Loading..." : `${events.length} event${events.length !== 1 ? "s" : ""}`}
+          {loading ? "…" : `${events.length} events`}
         </span>
       </div>
 
-      {/* Empty state */}
       {!loading && events.length === 0 && (
-        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--color-text-tertiary)", fontSize: 13 }}>
-          No events recorded yet.
+        <div style={{ textAlign: "center", padding: "32px 0", color: "var(--color-text-tertiary)", fontSize: 12 }}>
+          No events yet.
         </div>
       )}
 
-      {/* Event rows */}
       <div style={{ display: "flex", flexDirection: "column" }}>
         {events.map((ev, i) => (
           <div key={i}>
             <div
               onClick={() => setExpanded(expanded === i ? null : i)}
               style={{
-                display: "grid", gridTemplateColumns: "110px 1fr auto",
-                alignItems: "start", gap: 12, padding: "10px 14px",
-                borderRadius: 8, cursor: "pointer",
-                transition: "background 0.15s",
+                display: "grid", gridTemplateColumns: "100px 1fr auto",
+                alignItems: "start", gap: 10, padding: "8px 10px",
+                borderRadius: 6, cursor: "pointer", transition: "background 0.15s",
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = "var(--color-background-secondary)")}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,0,0,0.03)")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
-              {/* Badge */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                 <span style={{
-                  fontSize: 10, fontWeight: 500, padding: "2px 8px",
+                  fontSize: 9, fontWeight: 500, padding: "2px 7px",
                   borderRadius: 20, display: "inline-block", whiteSpace: "nowrap",
-                  ...getBadgeStyle(ev.type)
+                  ...getBadgeStyle(ev.type),
                 }}>
                   {(ev.type || "UNKNOWN").replace(/_/g, " ")}
                 </span>
                 {i === 0 && (
                   <span style={{
-                    fontSize: 10, fontWeight: 500, padding: "2px 7px",
-                    borderRadius: 20, background: "#EAF3DE", color: "#27500A",
-                    display: "inline-block"
+                    fontSize: 9, fontWeight: 500, padding: "2px 6px",
+                    borderRadius: 20, background: "rgba(22,150,71,0.12)",
+                    color: "#169647", display: "inline-block",
                   }}>new</span>
                 )}
               </div>
 
-              {/* Device + message */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                <code style={{ fontSize: 13, color: "var(--color-text-primary)" }}>{ev.name}</code>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <code style={{ fontSize: 12, color: "var(--color-text-primary)" }}>{ev.name}</code>
                 {ev.message && (
-                  <span style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>{ev.message}</span>
+                  <span style={{ fontSize: 11, color: "var(--color-text-secondary)", lineHeight: 1.4 }}>
+                    {ev.message}
+                  </span>
                 )}
               </div>
 
-              {/* Timestamp */}
-              <span style={{ fontSize: 11, color: "var(--color-text-tertiary)", whiteSpace: "nowrap", paddingTop: 2 }}>
+              <span style={{ fontSize: 10, color: "var(--color-text-tertiary)", whiteSpace: "nowrap", paddingTop: 2 }}>
                 {formatRelative(ev.timeStamp)}
               </span>
             </div>
 
-            {/* Raw JSON drawer */}
             {expanded === i && (
               <pre style={{
-                margin: "0 14px 8px", padding: "10px 12px",
-                background: "var(--color-background-secondary)",
+                margin: "0 10px 6px", padding: "8px 10px",
+                background: "rgba(0,0,0,0.03)",
                 border: "0.5px solid var(--color-border-tertiary)",
-                borderRadius: 8, fontSize: 11,
+                borderRadius: 6, fontSize: 10,
                 fontFamily: "var(--font-mono, monospace)",
                 color: "var(--color-text-secondary)",
-                overflowX: "auto", lineHeight: 1.6
+                overflowX: "auto", lineHeight: 1.5,
               }}>
                 {JSON.stringify(ev, null, 2)}
               </pre>
             )}
 
             {i < events.length - 1 && (
-              <div style={{ height: "0.5px", background: "var(--color-border-tertiary)", margin: "2px 0" }} />
+              <div style={{ height: "0.5px", background: "var(--color-border-tertiary)", margin: "1px 0" }} />
             )}
           </div>
         ))}

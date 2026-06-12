@@ -22,9 +22,9 @@ const BRAND_DARK = "#0f7035";
 
 const DATA_LABEL_MAP: Record<string, { label: string; color: "success" | "error" | "default" | "warning" }> = {
   "Ag==": { label: "Start",  color: "success" },
-  "Aq==": { label: "Stop",   color: "error"   },
-  "Aw==": { label: "Return", color: "default" },
-  "As==": { label: "Reboot", color: "warning" },
+  "Aw==": { label: "Stop",   color: "error"   },
+  "BA==": { label: "Return", color: "default" },
+  "BQ==": { label: "Reboot", color: "warning" },
 };
 
 /* ─── tiny keyframe injected once ─── */
@@ -153,9 +153,9 @@ const MulticastControl = () => {
   /* ── command buttons config ── */
   const commands = [
     { key: "Ag==", label: "Start",  icon: <PlayArrowRoundedIcon />,         variant: "contained" as const, color: BRAND,     hoverColor: BRAND_DARK },
-    { key: "Aq==", label: "Stop",   icon: <StopRoundedIcon />,              variant: "contained" as const, color: "#d32f2f", hoverColor: "#b71c1c" },
-    { key: "Aw==", label: "Return", icon: <ReplayRoundedIcon />,            variant: "outlined"  as const, color: BRAND,     hoverColor: BRAND_DARK },
-    { key: "As==", label: "Reboot", icon: <PowerSettingsNewRoundedIcon />,  variant: "outlined"  as const, color: "#ed6c02", hoverColor: "#e65100" },
+    { key: "Aw==", label: "Stop",   icon: <StopRoundedIcon />,              variant: "contained" as const, color: "#d32f2f", hoverColor: "#b71c1c" },
+    { key: "BA==", label: "Return", icon: <ReplayRoundedIcon />,            variant: "outlined"  as const, color: BRAND,     hoverColor: BRAND_DARK },
+    { key: "BQ==", label: "Reboot", icon: <PowerSettingsNewRoundedIcon />,  variant: "outlined"  as const, color: "#ed6c02", hoverColor: "#e65100" },
   ];
 
   const scheduleCount = getSchedule?.data?.length ?? 0;
@@ -188,9 +188,9 @@ const MulticastControl = () => {
             borderColor: BRAND,
             color: BRAND,
             textTransform: "none",
-            fontWeight: 600,
+            fontWeight: 500,
             fontSize: 13,
-            px: 1.5,
+            px: 5,
             marginLeft: 30,
             "&:hover": { borderColor: BRAND_DARK, bgcolor: BRAND_LIGHT },
           }}
@@ -200,7 +200,7 @@ const MulticastControl = () => {
             <Box component="span" sx={{
               ml: 0.8, display: "inline-flex", alignItems: "center", justifyContent: "center",
               bgcolor: BRAND, color: "#fff", borderRadius: "50%",
-              width: 18, height: 18, fontSize: 11, fontWeight: 700,
+              width: 20, height: 18, fontSize: 11, fontWeight: 700,
             }}>
               {scheduleCount}
             </Box>
