@@ -51,7 +51,7 @@ export class homeController{
         }
 
         const last5days = await service.getAvgDischarge(applicationId);
-        const todayData = await service.getTodayPanels(applicationId);
+        const todayData = await service.getTodayDicharge(applicationId);
 
         res.status(StatusCodes.OK).json({
             message:'success',

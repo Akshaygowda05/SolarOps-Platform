@@ -31,9 +31,11 @@ export default function ActiveInactiveStatusChart() {
 
   const BRAND_GREEN = '#169647';
   const BRAND_ORANGE = '#E07B2A';
-  const W = 280;
-  const H = 100;
-  const PAD = { l: 28, r: 12, t: 10, b: 24 };
+
+  // --- Optimized Proportions for High-Density Scaling ---
+  const W = 500;
+  const H = 220;
+  const PAD = { l: 45, r: 20, t: 25, b: 35 };
   const chartW = W - PAD.l - PAD.r;
   const chartH = H - PAD.t - PAD.b;
 
@@ -66,74 +68,88 @@ export default function ActiveInactiveStatusChart() {
 
   if (loading)
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 280 }}>
-        <CircularProgress size={28} sx={{ color: BRAND_GREEN }} />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexGrow: 1 }}>
+        <CircularProgress size={32} sx={{ color: BRAND_GREEN }} />
       </Box>
     );
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
         <Box>
-          <Typography sx={{ fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.3 }}>
+          <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.3 }}>
             Battery Discharge
           </Typography>
           {todayVal !== null && (
-            <Typography sx={{ fontSize: '1.4rem', fontWeight: 500, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
-              {todayVal}%
+            <Typography sx={{ fontSize: '1.6rem', fontWeight: 700, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
+              {todayVal}
             </Typography>
           )}
           {diff !== null && (
-            <Typography sx={{ fontSize: '0.7rem', color: parseFloat(diff) >= 0 ? BRAND_ORANGE : BRAND_GREEN, mt: 0.3 }}>
-              {parseFloat(diff) >= 0 ? '↑' : '↓'} {Math.abs(parseFloat(diff))}% vs yesterday
+            <Typography sx={{ fontSize: '0.75rem', color: parseFloat(diff) >= 0 ? BRAND_ORANGE : BRAND_GREEN, mt: 0.5, fontWeight: 500 }}>
+              {parseFloat(diff) >= 0 ? '↑' : '↓'} {Math.abs(parseFloat(diff))} vs yesterday
             </Typography>
           )}
         </Box>
-        <Box sx={{ fontSize: '0.65rem', background: BRAND_GREEN, color: '#fff', px: '8px', py: '2px', borderRadius: '20px', fontWeight: 500 }}>
+        <Box sx={{ fontSize: '0.7rem', background: BRAND_GREEN, color: '#fff', px: '10px', py: '3px', borderRadius: '20px', fontWeight: 600 }}>
           Live
         </Box>
       </Box>
 
-      <svg viewBox={`0 0 ${W} ${H + 20}`} style={{ width: '100%', display: 'block' }}>
-        <defs>
-          <linearGradient id="batt-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={BRAND_GREEN} stopOpacity="0.18" />
-            <stop offset="100%" stopColor={BRAND_GREEN} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {gridYs.map(({ v, y }) => (
-          <g key={v}>
-            <line x1={PAD.l} x2={W - PAD.r} y1={y} y2={y} stroke={theme.palette.divider} strokeWidth="0.5" />
-            <text x={PAD.l - 4} y={y + 3} fontSize="7" fill={theme.palette.text.secondary} textAnchor="end">{v}</text>
-          </g>
-        ))}
-        {points.length > 1 && <path d={areaPath} fill="url(#batt-area)" />}
-        {points.length > 1 && (
-          <polyline points={polyline} fill="none" stroke={BRAND_GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        )}
-        {points.map((p, i) =>
-          p.isToday ? (
-            <g key={i}>
-              <circle cx={p.x} cy={p.y} r="8" fill="none" stroke={BRAND_ORANGE} strokeWidth="1.5">
-                <animate attributeName="r" values="5;11;5" dur="1.4s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.7;0;0.7" dur="1.4s" repeatCount="indefinite" />
-              </circle>
-              <circle cx={p.x} cy={p.y} r="4" fill={BRAND_GREEN} stroke="#fff" strokeWidth="1.5" />
+      {/* Responsive Graph Container */}
+      <Box sx={{ width: '100%', flexGrow: 1, my: 1 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
+          <defs>
+            <linearGradient id="batt-area" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={BRAND_GREEN} stopOpacity="0.22" />
+              <stop offset="100%" stopColor={BRAND_GREEN} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          
+          {/* Y-Axis Grid Engine */}
+          {gridYs.map(({ v, y }) => (
+            <g key={v}>
+              <line x1={PAD.l} x2={W - PAD.r} y1={y} y2={y} stroke={theme.palette.divider} strokeWidth="0.75" strokeDasharray="3 3" />
+              <text x={PAD.l - 8} y={y + 3} fontSize="11" fill={theme.palette.text.secondary} textAnchor="end" fontFamily={theme.typography.fontFamily}>
+                {v}
+              </text>
             </g>
-          ) : (
-            <circle key={i} cx={p.x} cy={p.y} r="3" fill={BRAND_GREEN} />
-          )
-        )}
-        {points.map((p, i) => (
-          <text key={i} x={p.x} y={H + 8} fontSize="8" fill={p.isToday ? BRAND_ORANGE : theme.palette.text.secondary as string} textAnchor="middle" fontWeight={p.isToday ? 600 : 400}>
-            {p.isToday ? 'Today' : p.dayLabel}
-          </text>
-        ))}
-      </svg>
+          ))}
+          
+          {/* SVG Geometric Render Paths */}
+          {points.length > 1 && <path d={areaPath} fill="url(#batt-area)" />}
+          {points.length > 1 && (
+            <polyline points={polyline} fill="none" stroke={BRAND_GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          )}
+          
+          {/* Node Point Anchors */}
+          {points.map((p, i) =>
+            p.isToday ? (
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r="14" fill="none" stroke={BRAND_ORANGE} strokeWidth="1.5">
+                  <animate attributeName="r" values="8;16;8" dur="1.4s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.7;0;0.7" dur="1.4s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={p.x} cy={p.y} r="5" fill={BRAND_GREEN} stroke="#fff" strokeWidth="2" />
+              </g>
+            ) : (
+              <circle key={i} cx={p.x} cy={p.y} r="4" fill={BRAND_GREEN} />
+            )
+          )}
+          
+          {/* X-Axis Labels */}
+          {points.map((p, i) => (
+            <text key={i} x={p.x} y={H - 12} fontSize="11" fill={p.isToday ? BRAND_ORANGE : theme.palette.text.secondary} textAnchor="middle" fontWeight={p.isToday ? 600 : 400} fontFamily={theme.typography.fontFamily}>
+              {p.isToday ? 'Today' : p.dayLabel}
+            </text>
+          ))}
+        </svg>
+      </Box>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', mt: 1 }}>
-        <Box sx={{ width: 10, height: 2, background: BRAND_GREEN, borderRadius: 1 }} />
-        <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary' }}>Avg discharge (%)</Typography>
+      {/* Legend Block */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ width: 12, height: 3, background: BRAND_GREEN, borderRadius: '2px' }} />
+        <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', fontWeight: 500 }}>Avg discharge</Typography>
       </Box>
     </Box>
   );

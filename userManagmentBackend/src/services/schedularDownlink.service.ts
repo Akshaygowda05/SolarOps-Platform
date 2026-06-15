@@ -1,10 +1,10 @@
 
 import MulticastService from "../services/multicast.service";
-import { storeApplicationEvents } from "../config/redis";
+//import { storeApplicationEvents } from "../config/redis";
 import loggers from "../config/logger";
 
 export async function sendUnicastDownlink(
-  groupIds:[string],
+  groupIds:string[],
   payload: string,
   applicationId: string
 ){
@@ -27,14 +27,16 @@ for (const id of groupIds) {
 }
 
 export async function sendMulticastDownlink(
-  groupIds:[string],
-  groupNames:[string],
+  groupIds:string[],
+  groupNames:string[],
   payload: string,
   applicationId: string
 ){
   // here i need to send downlink to the  multicast group
 
-  
+loggers.info(
+  `Sending multicast downlink to groups: ${groupIds.join(", ")}`
+);
 
   for (const id of groupIds) {
           try {
@@ -54,18 +56,10 @@ export async function sendMulticastDownlink(
           }
         }
 
-         await storeApplicationEvents(
-        applicationId,
-        JSON.stringify({
-          type: "scheduler_triggered",
-          groups: groupNames,
-          timeStamp: new Date().toISOString(),
-        })
-      );
 }
 
 export async function sendDownlink(
-  groupIds: [string],
+  groupIds: string[],
   payload: string,
   applicationId: string
 ){

@@ -40,9 +40,8 @@ export class ReportRepository {
 
   async getDischarge(applicationId:string){
     return prisma.$queryRaw<AverageBatteryDischarge[]>`
-        SELECT 
-          DATE("createdAt") as date,
-          AVG("batteryDischargeCycle") as "avgDischarge"
+        SELECT DATE("createdAt") as date,
+            AVG("batteryDischargeCycle") as "avgDischarge"
         FROM "RobotData"
         WHERE "applicationId" = ${applicationId}
           AND "createdAt" >= CURRENT_DATE - INTERVAL '5 days'
@@ -54,9 +53,8 @@ export class ReportRepository {
 
   async getTodayDicharge(applicatonId:string){
     return prisma.$queryRaw<AverageBatteryDischarge[]>`
-        SELECT 
-          DATE("createdAt") as date,
-          AVG("batteryDischargeCycle") as "avgDischarge"
+        SELECT DATE("createdAt") as date,
+            AVG("batteryDischargeCycle") as "avgDischarge"
         FROM "RobotData"
         WHERE "applicationId" = ${applicatonId}
           AND "createdAt" >= CURRENT_DATE

@@ -50,6 +50,11 @@ export class homeService{
     return avgDischage
   }
 
+  async getTodayDicharge(applicationId:string){
+    const result = await this.repo.getTodayDicharge(applicationId)
+    return result[0] || { date: new Date(), AvgDischarge: 0 };
+  }
+
 
   // this will work on later
 //   async getTodayAvrageDsicharge(applicationid:string){
