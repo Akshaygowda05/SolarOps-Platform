@@ -10,8 +10,7 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts",
-     "config": "prisma.config.ts"
-    
+    "config": "prisma.config.ts"
   },
   "keywords": [],
   "author": "",
@@ -31,6 +30,7 @@
     "http-status-codes": "^2.3.0",
     "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.3",
+    "moment-timezone": "^0.6.2",
     "mqtt": "^5.15.0",
     "p-limit": "^3.1.0",
     "prisma": "^6.19.3",

@@ -1,9 +1,10 @@
 // queues/scheduler.jobs.ts
 
-import moment from "moment-timezone";
 import schedulerQueue from "./scheduler.queue";
 import loggers from "../config/logger";
 import { prisma } from "../config/primsaConfig";
+import moment from "moment-timezone";
+
 
 class JobSchedulerService {
 
@@ -44,30 +45,27 @@ class JobSchedulerService {
   }
 
   // DAILY REPEATABLE JOB
-// DAILY REPEATABLE JOB
-async addDailyJob(data: any) {
-    const istTime = moment(data.time).tz("Asia/Kolkata");
+ async addDailyJob(data: any) {
+  const date = moment(data.time).tz("Asia/Kolkata");
 
-  // If data.time is stored as a clean ISO/UTC string, use UTC to prevent local server drift alignment:
-  const hour = istTime.getUTCHours();
-  const minute = istTime.getUTCMinutes();
+  const hour = date.hour();
+  const minute = date.minute();
 
-  // Runs every day at the specified time (Adjusted to UTC to match getUTC helper)
+  // Runs every day at the specified time
   const cronPattern = `${minute} ${hour} * * *`;
 
-  // Safely cast ID to string to avoid BullMQ internal dictionary mismatch issues
-  const schedulerIdforDelay = `entry-${String(data.id)}`;
+  const schedulerIdforDelay = `entry-${data.id}`;
 
   await schedulerQueue.upsertJobScheduler(
     schedulerIdforDelay,
     {
       pattern: cronPattern,
-      tz: "UTC", // Kept aligned with your Date extractor tools up top
+      tz: "Asia/Kolkata",
     },
     {
       name: "scheduler:daily",
       data: {
-        schedulerId: Number(data.id), // Force consistency with worker setup
+        schedulerId: data.id,
         payload: data.data,
         groupIds: data.groupId,
         applicationId: data.applicationId,

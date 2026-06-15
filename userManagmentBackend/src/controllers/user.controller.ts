@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { userService } from "../services/user.service";
 import AppError from "../utils/AppError";
 import { StatusCodes } from "http-status-codes";
+import loggers from "../config/logger";
 
 
 export class UserController {
@@ -30,6 +31,15 @@ export class UserController {
             const userId = parseInt(req.params.id as string, 10);
             await userService.deletUser(userId);
             res.status(200).json({ message: 'User deleted successfully' });
+        } catch (error) {
+            next(error);// this will pass the error to the global error handler
+        }
+    }
+    static async deleteUserProfile(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = parseInt(req.params.id as string, 10);
+            await userService.deleteUserProfile(userId);
+            res.status(200).json({ message: 'User profile deleted successfully' });
         } catch (error) {
             next(error);// this will pass the error to the global error handler
         }
@@ -65,16 +75,23 @@ export class UserController {
     static async updateUserPassword(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = parseInt(req.params.id as string, 10);
+            loggers.info(`Received request to update password for user ID: ${userId}`);
+            if (!req.body || !req.body.newPassword) {
+                loggers.warn(`No new password provided for user ID: ${userId}`);
+                throw new AppError('New password is required', StatusCodes.BAD_REQUEST);
+            }
             const { newPassword } = req.body;
+            loggers.info(`Updating password for user ID: ${userId}`);
+            loggers.info(`New password received: ${newPassword ? 'Yes' : 'No'}`);
             await userService.updateuserPassword(userId, newPassword);
             res.status(200).json({ message: 'Password updated successfully' });
         } catch (error) {
-      next(error);// this will pass the error to the global error handler
+      next(error);
         }
 
     }
 
-    static async getUsers(req: Request, res: Response, next: NextFunction) {
+    static async getAllUsers(req: Request, res: Response, next: NextFunction) {
         try {
             const page = Number(req.query.page) || 1;
             const limit = Number(req.query.limit) || 10;
@@ -84,6 +101,19 @@ export class UserController {
             res.json(result);
         } catch (error) {
             next(error);// this will pass the error to the global error handler
+        }
+    }
+
+    static async getUserById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = parseInt(req.params.id as string, 10);
+            const user = await userService.getUserById(userId);
+            if (!user) {
+                throw new AppError('User not found', StatusCodes.NOT_FOUND);
+            }
+            res.json(user);
+        } catch (error) {
+            next(error);
         }
     }
 }

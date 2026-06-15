@@ -17,6 +17,7 @@ import { useSocketInit } from "./hooks/useSocketInit";
 import DeviceDetail from "./pages/deviceDetail";
 import { SiteConfigPage } from "./pages/siteconfigPage";
 import Report from "./pages/Report";
+import EditUser from "./pages/EditUser";
 
 // so ondu context create maditivi, admele adannu useContext hook use madi consume madtivi
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
@@ -145,6 +146,19 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+             <Route
+              path="/users/edit/:id"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <MainLayout>
+                    <EditUser />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            
+
 
              <Route
               path="/devices/:devEui"

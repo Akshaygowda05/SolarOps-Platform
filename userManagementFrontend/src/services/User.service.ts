@@ -102,10 +102,35 @@ export const getApplicationLogs = async () => {
 }
 
 export const deleteUser = async (userId: number) => {
-    return await api.delete(`/v1/users/${userId}`);
+    return await api.delete(`/v1/users/delete/${userId}`);
 }
 
 
+
+
+export const fetchUserById = async (userId: number) => {
+    const response = await api.get(`/v1/users/${userId}`);
+    return response.data; // Directly returns the user object payload
+};
+
+/**
+ * Update a user's profile details (Name, Email, Role, Status)
+ */
+export const updateUser = async (userId: number, data: any) => {
+    const response = await api.put(`/v1/users/${userId}`, data);
+    return response.data; // Directly returns the updated user database row
+};
+
+/**
+ * Force update a user's password securely
+ */
+export const updateUserPassword = async (userId: number, newPassword: string) => {
+    // FIX: Body key matches 'newPassword' exactly as your backend Service expects it
+    const response = await api.put(`/v1/users/password/${userId}`, { 
+        newPassword: newPassword 
+    });
+    return response.data; // Directly returns the success payload
+};
 
 export const fetchDataofRobot = async(devEui:string) =>{
     return  await api.get(`v1/device/${devEui}/data`)
