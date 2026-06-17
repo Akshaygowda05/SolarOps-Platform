@@ -41,7 +41,7 @@ async function authenticate(req: Request, res: Response, next: NextFunction) {
 
         req.userId = decode.userId;
         req.role = decode.role as Role;
-        req.applicationId = decode.applicationId;
+        req.TokenapplicationId = decode.applicationId;
         next();
     } catch (error) {
         res.status(500).json({ error: 'Authentication failed' });

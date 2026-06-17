@@ -5,7 +5,9 @@ declare global {
     interface Request {
       userId?: string;
       role?: Role;
-      applicationId?: string;
+      TokenapplicationId?: string; 
+      applicationId?: string;   
+
     }
   }
 }

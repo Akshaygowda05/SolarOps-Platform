@@ -6,10 +6,10 @@ import loggers from '../../config/logger';
 import { prisma } from '../../config/primsaConfig';
 import AppError from '../../utils/AppError';
 import { StatusCodes } from 'http-status-codes';
-import { server } from '../../server';
 import { getRedisClient, storeApplicationEvents } from '../../config/redis';
-import { all, HttpStatusCode } from 'axios';
+import {  HttpStatusCode } from 'axios';
 import { MulticastController } from '../../controllers/multicast.controller';
+import { ApplicationContext } from '../../middlewares/applicationContext';
 const  chripstackRouter = express.Router();
 require('dotenv').config();
 
@@ -23,7 +23,7 @@ let redis = getRedisClient();
 
 
 // this is to get devices by group id 
-chripstackRouter.get('/v1/devices/:groupId',authenticate ,async (req: Request, res: Response,next: NextFunction) => {
+chripstackRouter.get('/v1/devices/:groupId',authenticate,ApplicationContext,async (req: Request, res: Response,next: NextFunction) => {
     const { groupId } = req.params;
     try {
         const applicationId = (req as CustomRequest).applicationId;
@@ -51,6 +51,7 @@ chripstackRouter.get('/v1/devices/:groupId',authenticate ,async (req: Request, r
 chripstackRouter.get(
   "/devices",
   authenticate,
+  ApplicationContext,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const applicationId = (req as CustomRequest).applicationId;
@@ -134,6 +135,7 @@ chripstackRouter.get(
 chripstackRouter.get(
   "/v1/devices",
   authenticate,
+  ApplicationContext,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const applicationId = (req as CustomRequest).applicationId;
@@ -211,7 +213,7 @@ chripstackRouter.get(
 
 
 // toggle downlink for device(for this authneticate we dont want )
-chripstackRouter.post('/devices/:deviceId/queue', authenticate,async (req: Request, res: Response,next: NextFunction) => {
+chripstackRouter.post('/devices/:deviceId/queue', authenticate,ApplicationContext,async (req: Request, res: Response,next: NextFunction) => {
     try {
         const applicationId = (req as CustomRequest).applicationId;
 
@@ -243,7 +245,7 @@ chripstackRouter.post('/devices/:deviceId/queue', authenticate,async (req: Reque
 });
 
 // fetch multicast groups by 
-chripstackRouter.get('/multicast-groups', authenticate,async (req:Request, res:Response,next: NextFunction) => {
+chripstackRouter.get('/multicast-groups', authenticate,ApplicationContext,async (req:Request, res:Response,next: NextFunction) => {
   try {
     const applicationId = (req as CustomRequest).applicationId;
     if(!applicationId){
@@ -267,7 +269,7 @@ chripstackRouter.get('/multicast-groups', authenticate,async (req:Request, res:R
 
 // this is to get all gateways for perticular tenant
 
-chripstackRouter.get('/ApplicationGateways',authenticate,async(req: Request,res: Response)=>{
+chripstackRouter.get('/ApplicationGateways',authenticate,ApplicationContext,async(req: Request,res: Response)=>{
     try {
 
         const applicationId = (req as CustomRequest).applicationId;
@@ -326,7 +328,7 @@ chripstackRouter.get('/ApplicationGateways',authenticate,async(req: Request,res:
 
 })
 
-chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Response)=>{
+chripstackRouter.get('/allGateways',authenticate,ApplicationContext,async(req: Request,res: Response)=>{
     try {
 
         const applicationId = (req as CustomRequest).applicationId;
@@ -464,7 +466,7 @@ chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Respons
 //     }
 // });
 
-chripstackRouter.post('/multicast-groups/queue', authenticate,MulticastController.sendDownlink); 
+chripstackRouter.post('/multicast-groups/queue', authenticate, ApplicationContext, MulticastController.sendDownlink); 
 
 export default chripstackRouter;
 
