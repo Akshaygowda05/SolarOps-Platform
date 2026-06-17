@@ -54,14 +54,98 @@ function Sidebar() {
 
           {/* ADMIN NAV */}
           {user.role === "ADMIN" && (
-            <>
-              <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 800, color: 'text.secondary' }}>
-                ADMINISTRATION
-              </Typography>
-              <NavItem to="/admin" label="Admin Panel" icon={<AdminPanelSettingsIcon />} active={pathname === "/admin"} />
-              <NavItem to="/users" label="Manage Users" icon={<PeopleIcon />} active={pathname === "/users"} />
-            </>
-          )}
+  <>
+    <Typography
+      variant="caption"
+      sx={{
+        px: 2,
+        py: 1,
+        display: "block",
+        fontWeight: 800,
+        color: "text.secondary",
+      }}
+    >
+      ADMINISTRATION
+    </Typography>
+
+    <NavItem
+      to="/admin"
+      label="Admin Panel"
+      icon={<AdminPanelSettingsIcon />}
+      active={pathname === "/admin"}
+    />
+
+    <NavItem
+      to="/users"
+      label="Manage Users"
+      icon={<PeopleIcon />}
+      active={pathname === "/users"}
+    />
+
+    <NavItem
+      to="/tenants"
+      label="Admin Portal"
+      icon={<GroupsIcon />}
+      active={pathname === "/tenants"}
+    />
+
+    <Typography
+      variant="caption"
+      sx={{
+        px: 2,
+        py: 1,
+        mt: 2,
+        display: "block",
+        fontWeight: 800,
+        color: "text.secondary",
+      }}
+    >
+      APPLICATION
+    </Typography>
+
+    <NavItem
+      to="/dashboard"
+      label="Dashboard"
+      icon={<DashboardIcon />}
+      active={pathname === "/dashboard"}
+    />
+
+    <NavItem
+      to="/devices"
+      label="Devices"
+      icon={<SmartToyIcon />}
+      active={pathname === "/devices"}
+    />
+
+    <NavItem
+      to="/multicast-groups"
+      label="Multicast"
+      icon={<GroupsIcon />}
+      active={pathname === "/multicast-groups"}
+    />
+
+    <NavItem
+      to="/Robotsbatteies"
+      label="Battery"
+      icon={<BatteryChargingFullIcon />}
+      active={pathname === "/Robotsbatteies"}
+    />
+
+    <NavItem
+      to="/logs"
+      label="System Logs"
+      icon={<ReceiptLongIcon />}
+      active={pathname === "/logs"}
+    />
+
+    <NavItem
+      to="/reports"
+      label="Reports"
+      icon={<ReceiptLongIcon />}
+      active={pathname === "/reports"}
+    />
+  </>
+)}
         </List>
       </Box>
 

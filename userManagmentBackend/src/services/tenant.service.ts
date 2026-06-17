@@ -5,13 +5,14 @@ import apiClient from "../config/apiclient";
 class TenantServices {
     
   async getTenants() {
+
     try {
       const result = [];
       const limit = 50;
       let offset = 0;
 
       while (true) {
-        const response = await apiClient.get("/tenants", {
+        const response = await apiClient.get("/api/tenants", {
           params: {
             limit,
             offset,
@@ -23,8 +24,11 @@ class TenantServices {
         if (tenants.length === 0) {
           break;
         }
-
         result.push(...tenants);
+
+        if (tenants.length < limit) {
+          break;
+        }
         offset += limit;
       }
 

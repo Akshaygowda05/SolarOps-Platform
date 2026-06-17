@@ -7,8 +7,9 @@ class tenantController {
 
 async getTenants(req: Request, res: Response, next: NextFunction) {
     try{
-
+    
        const tenants = await tenantService.getTenants();
+
        res.status(200).json({ tenants });
     }catch(error){
         next(error);

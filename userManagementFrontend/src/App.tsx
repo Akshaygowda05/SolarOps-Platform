@@ -18,6 +18,8 @@ import DeviceDetail from "./pages/deviceDetail";
 import { SiteConfigPage } from "./pages/siteconfigPage";
 import Report from "./pages/Report";
 import EditUser from "./pages/EditUser";
+import AdminPortal from "./pages/Tenants"; 
+import AdminApplicationGuard from "./components/AdminApplicationGuard";
 
 // so ondu context create maditivi, admele adannu useContext hook use madi consume madtivi
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
@@ -68,37 +70,43 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute allowedRoles={["USER"]}>
+                <ProtectedRoute allowedRoles={["USER","ADMIN"]}>
+                  <AdminApplicationGuard >
                   <MainLayout>
                     <Dashboard />
                   </MainLayout>
+                  </AdminApplicationGuard>
                 </ProtectedRoute>
               } />
 
             <Route
               path="/multicast-groups"
               element={
-                <ProtectedRoute allowedRoles={["USER"]}>
+                <ProtectedRoute allowedRoles={["USER","ADMIN"]}>
+                  <AdminApplicationGuard>
                   <MainLayout>
                     <MulticastGroup />
                   </MainLayout>
+                  </AdminApplicationGuard>
                 </ProtectedRoute>
               } />
 
             <Route
               path="/logs"
               element={
-                <ProtectedRoute allowedRoles={["USER"]}>
+                <ProtectedRoute allowedRoles={["USER","ADMIN"]}>
+                  <AdminApplicationGuard>
                   <MainLayout>
                     <Logs />
                   </MainLayout>
+                  </AdminApplicationGuard>
                 </ProtectedRoute>
               } />
 
                <Route
               path="/site-config"
               element={
-                <ProtectedRoute allowedRoles={["USER"]}>
+                <ProtectedRoute allowedRoles={["USER","ADMIN"]}>
                   <MainLayout>
                     <SiteConfigPage />
                   </MainLayout>
@@ -108,20 +116,24 @@ function App() {
             <Route
               path="/Robotsbatteies"
               element={
-                <ProtectedRoute allowedRoles={["USER"]}>
-                  <MainLayout>
-                    <BatteryPages />
-                  </MainLayout>
+                <ProtectedRoute allowedRoles={["USER","ADMIN"]}>
+                  <AdminApplicationGuard>
+                    <MainLayout>
+                      <BatteryPages />
+                    </MainLayout>
+                  </AdminApplicationGuard>
                 </ProtectedRoute>
               } />
 
             <Route
               path="/devices"
               element={
-                <ProtectedRoute allowedRoles={["USER"]}>
-                  <MainLayout>
-                    <Devices />
-                  </MainLayout>
+                <ProtectedRoute allowedRoles={["USER","ADMIN"]}>
+                  <AdminApplicationGuard>
+                    <MainLayout>
+                      <Devices />
+                    </MainLayout>
+                  </AdminApplicationGuard>
                 </ProtectedRoute>
               } />
 
@@ -146,6 +158,16 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/tenants"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <MainLayout>
+                    <AdminPortal />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
 
              <Route
               path="/users/edit/:id"
@@ -163,20 +185,24 @@ function App() {
              <Route
               path="/devices/:devEui"
               element={
-                <ProtectedRoute allowedRoles={['USER']}>
+                <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
+                  <AdminApplicationGuard>
                   <MainLayout>
                     <DeviceDetail />
                   </MainLayout>
+                  </AdminApplicationGuard>
                 </ProtectedRoute>
               }
             />
              <Route
               path="/reports"
               element={
-                <ProtectedRoute allowedRoles={['USER']}>
-                  <MainLayout>
-                    <Report />
-                  </MainLayout>
+                <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
+                  <AdminApplicationGuard>
+                    <MainLayout>
+                      <Report />
+                    </MainLayout>
+                  </AdminApplicationGuard>
                 </ProtectedRoute>
               }
             />

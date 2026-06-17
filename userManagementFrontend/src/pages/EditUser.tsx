@@ -1,258 +1,360 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { 
-  Box, 
-  TextField, 
-  Button, 
-  Typography, 
-  Paper, 
-  Alert, 
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Paper,
   CircularProgress,
   Divider,
   MenuItem,
   FormControlLabel,
-  Switch
+  Switch,
+  IconButton,
+  InputAdornment,
+  LinearProgress,
 } from "@mui/material";
-// Using your separate service functions cleanly here
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import toast, { Toaster } from "react-hot-toast";
 import { fetchUserById, updateUser, updateUserPassword } from "../services/User.service";
 
+const BRAND_GREEN = "#169647";
+
+type PasswordStrength = {
+  score: number; // 0-4
+  label: string;
+  color: string;
+};
+
+function getPasswordStrength(password: string): PasswordStrength {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1) return { score, label: "Weak", color: "error.main" };
+  if (score === 2) return { score, label: "Fair", color: "#E07B2A" };
+  if (score === 3) return { score, label: "Good", color: "#E07B2A" };
+  return { score, label: "Strong", color: BRAND_GREEN };
+}
+
 export default function EditUser() {
-  const params = useParams(); 
-  const urlId = params.id || params.userId; 
+  const params = useParams();
+  const urlId = params.id || params.userId;
   const userId = urlId ? parseInt(urlId, 10) : null;
+  const isValidUserId = !!userId && !isNaN(userId);
 
-  // State management
-  const [userData, setUserData] = useState({ 
-    name: "", 
-    email: "", 
-    role: "USER", 
-    isActive: true 
+  // Profile state
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    role: "USER",
+    isActive: true,
   });
-  const [newPassword, setNewPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const [message, setMessage] = useState({ type: "", text: "" });
 
-  // 1. Fetch user data dynamically on mount using separate service
+  // Password state
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Independent loading states
+  const [fetching, setFetching] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // 1. Fetch user data on mount
   useEffect(() => {
     async function fetchUser() {
-      if (!userId || isNaN(userId)) {
-        setMessage({ type: "error", text: `Invalid User ID provided. Received: "${urlId}"` });
+      if (!isValidUserId) {
+        setFetchError(`Invalid user ID provided. Received: "${urlId}"`);
         setFetching(false);
         return;
       }
 
       try {
-        // CLEAN FIX: Separated API call handles the fetch behind the scenes
-        const data = await fetchUserById(userId);
-
+        const data = await fetchUserById(userId!);
         if (!data) throw new Error("No user data returned from backend server.");
-        
+
         setUserData({
           name: data.name || "",
           email: data.email || "",
           role: data.role || "USER",
-          isActive: data.isActive !== undefined ? data.isActive : true
-        }); 
+          isActive: data.isActive !== undefined ? data.isActive : true,
+        });
       } catch (error: any) {
         console.error("Error fetching user:", error);
-        setMessage({ type: "error", text: "Could not load user data from backend." });
+        setFetchError("Could not load user data. Please try again.");
+        toast.error("Could not load user data.");
       } finally {
         setFetching(false);
       }
     }
     fetchUser();
-  }, [userId, urlId]);
+  }, [userId, urlId, isValidUserId]);
 
-  // 2. Handle Profile Information Update using separate service
-  const handleUpdateProfile = async (e: any) => {
+  const isEmailEmpty = !userData.email || userData.email.trim() === "";
+
+  // 2. Update profile
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // FRONTEND SAFETY GUARD: Prevent blank submissions
-    if (!userData.email || userData.email.trim() === "") {
-      setMessage({ type: "error", text: "Validation Error: Email field cannot be empty!" });
+    if (isEmailEmpty) {
+      toast.error("Email is required.");
       return;
     }
 
-    setLoading(true);
-    setMessage({ type: "", text: "" });
-
+    setProfileLoading(true);
     try {
-      // CLEAN FIX: Using your separate helper function cleanly, passing the payload data object
-      const result = await updateUser(userId!, {
+      await updateUser(userId!, {
         name: userData.name,
         email: userData.email,
         role: userData.role,
-        isActive: userData.isActive
+        isActive: userData.isActive,
       });
-
-      console.log("Update profile response data:", result);
-      setMessage({ type: "success", text: "Profile updated successfully!" });
+      toast.success("Profile updated successfully!");
     } catch (error: any) {
       console.error("Error updating profile:", error);
-      // Handles Axios deep error parsing strings neatly
       const errorText = error.response?.data?.message || error.message || "Failed to update profile.";
-      setMessage({ type: "error", text: errorText });
+      toast.error(errorText);
     } finally {
-      setLoading(false);
+      setProfileLoading(false);
     }
   };
 
-  // 3. Handle Password Update using separate service
-  const handleUpdatePassword = async (e: any) => {
+  // 3. Update password
+  const passwordTooShort = newPassword.length > 0 && newPassword.length < 8;
+  const passwordsMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+  const passwordStrength = getPasswordStrength(newPassword);
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!newPassword) {
-      setMessage({ type: "error", text: "Password cannot be empty." });
+      toast.error("Password cannot be empty.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match.");
       return;
     }
 
-    setLoading(true);
-    setMessage({ type: "", text: "" });
-
+    setPasswordLoading(true);
     try {
-      // CLEAN FIX: Using separate password modifier function instead of raw fetch strings
-      const result = await updateUserPassword(userId!, newPassword);
-      console.log("Update password response data:", result);
-
-      setMessage({ type: "success", text: "Password updated successfully!" });
-      setNewPassword(""); 
+      await updateUserPassword(userId!, newPassword);
+      toast.success("Password updated successfully!");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (error: any) {
+      console.error("Error updating password:", error);
       const errorText = error.response?.data?.message || error.message || "Failed to update password.";
-      setMessage({ type: "error", text: errorText });
+      toast.error(errorText);
     } finally {
-      setLoading(false);
+      setPasswordLoading(false);
     }
   };
 
   if (fetching) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <CircularProgress />
       </Box>
     );
   }
 
-  const isEmailEmpty = !userData.email || userData.email.trim() === "";
-
   return (
-    <Paper 
-      elevation={3} 
-      sx={{ 
-        maxWidth: 480, 
-        margin: "30px auto", 
-        padding: 4, 
-        borderRadius: 2,
-        backgroundColor: "background.paper" 
-      }}
-    >
-      <Typography variant="h5" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-        Edit User Settings
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Managing Account ID: <strong>{userId}</strong>
-      </Typography>
+    <>
+      <Toaster position="top-right" />
+      <Paper
+        elevation={3}
+        sx={{
+          maxWidth: 480,
+          margin: "30px auto",
+          padding: 4,
+          borderRadius: 2,
+          backgroundColor: "background.paper",
+        }}
+      >
+        <Typography variant="h5" component="h1" gutterBottom sx={{ fontWeight: "bold" }}>
+          Edit User Settings
+        </Typography>
 
-      {message.text && (
-        <Alert severity={message.type === "success" ? "success" : "error"} sx={{ mb: 3 }}>
-          {message.text}
-        </Alert>
-      )}
+        {!isValidUserId || fetchError ? (
+          <Typography color="error.main" sx={{ mt: 2 }}>
+            {fetchError}
+          </Typography>
+        ) : (
+          <>
+            <Box component="form" onSubmit={handleUpdateProfile} sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }} color="text.primary">
+                User Profile Details
+              </Typography>
 
-      {userId && !isNaN(userId) && (
-        <>
-          <Box component="form" onSubmit={handleUpdateProfile} sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: '600' }} color="text.primary">
-              User Profile Details
-            </Typography>
-            
-            <TextField
-              fullWidth
-              label="Full Name"
-              variant="outlined"
-              margin="dense"
-              value={userData.name}
-              onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-            />
-
-            <TextField
-              fullWidth
-              label="Email Address"
-              type="email"
-              variant="outlined"
-              margin="dense"
-              value={userData.email}
-              error={isEmailEmpty}
-              helperText={isEmailEmpty ? "Email is required to keep account login active" : ""}
-              onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-            />
-
-            <TextField
-              fullWidth
-              select
-              label="System Role"
-              value={userData.role}
-              margin="dense"
-              onChange={(e) => setUserData({ ...userData, role: e.target.value })}
-            >
-              <MenuItem value="USER">User</MenuItem>
-              <MenuItem value="ADMIN">Administrator</MenuItem>
-            </TextField>
-
-            <Box sx={{ mt: 1, mb: 2 }}>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={userData.isActive} 
-                    onChange={(e) => setUserData({ ...userData, isActive: e.target.checked })}
-                    color="primary"
-                  />
-                }
-                label={userData.isActive ? "Account is Active" : "Account is Suspended"}
+              <TextField
+                fullWidth
+                label="Full Name"
+                variant="outlined"
+                margin="dense"
+                value={userData.name}
+                onChange={(e) => setUserData({ ...userData, name: e.target.value })}
               />
+
+              <TextField
+                fullWidth
+                label="Email Address"
+                type="email"
+                variant="outlined"
+                margin="dense"
+                value={userData.email}
+                error={isEmailEmpty}
+                helperText={isEmailEmpty ? "Email is required to keep account login active" : ""}
+                onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+              />
+
+              <TextField
+                fullWidth
+                select
+                label="System Role"
+                value={userData.role}
+                margin="dense"
+                onChange={(e) => setUserData({ ...userData, role: e.target.value })}
+              >
+                <MenuItem value="USER">User</MenuItem>
+                <MenuItem value="ADMIN">Administrator</MenuItem>
+              </TextField>
+
+              <Box sx={{ mt: 1, mb: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={userData.isActive}
+                      onChange={(e) => setUserData({ ...userData, isActive: e.target.checked })}
+                      color="primary"
+                    />
+                  }
+                  label={userData.isActive ? "Account is Active" : "Account is Suspended"}
+                />
+              </Box>
+
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={profileLoading || isEmailEmpty}
+                fullWidth
+              >
+                {profileLoading ? "Saving..." : "Save Profile Data"}
+              </Button>
             </Box>
-            
-            <Button 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
-              disabled={loading || isEmailEmpty}
-              fullWidth
-            >
-              {loading ? "Processing..." : "Save Profile Data"}
-            </Button>
-          </Box>
 
-          <Divider sx={{ my: 4 }} />
+            <Divider sx={{ my: 4 }} />
 
-          <Box component="form" onSubmit={handleUpdatePassword}>
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: '600' }} color="text.primary">
-              Security Credentials
-            </Typography>
-            
-            <TextField
-              fullWidth
-              label="Assign New Password"
-              type="password"
-              variant="outlined"
-              margin="dense"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter complex password string"
-            />
-            
-            <Button 
-              type="submit" 
-              variant="outlined" 
-              color="error" 
-              disabled={loading}
-              fullWidth
-              sx={{ mt: 2 }}
-            >
-              {loading ? "Updating..." : "Force Update Password"}
-            </Button>
-          </Box>
-        </>
-      )}
-    </Paper>
+            <Box component="form" onSubmit={handleUpdatePassword}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }} color="text.primary">
+                Security Credentials
+              </Typography>
+
+              <TextField
+                fullWidth
+                label="New Password"
+                type={showNewPassword ? "text" : "password"}
+                variant="outlined"
+                margin="dense"
+                value={newPassword}
+                error={passwordTooShort}
+                helperText={passwordTooShort ? "Password must be at least 8 characters" : " "}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter a new password"
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label={showNewPassword ? "Hide password" : "Show password"}
+                          onClick={() => setShowNewPassword((prev) => !prev)}
+                          edge="end"
+                        >
+                          {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+
+              {newPassword.length > 0 && (
+                <Box sx={{ mb: 1 }}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={(passwordStrength.score / 4) * 100}
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor: "action.hover",
+                      "& .MuiLinearProgress-bar": {
+                        backgroundColor: passwordStrength.color,
+                      },
+                    }}
+                  />
+                  <Typography variant="caption" sx={{ color: passwordStrength.color, fontWeight: 600 }}>
+                    {passwordStrength.label}
+                  </Typography>
+                </Box>
+              )}
+
+              <TextField
+                fullWidth
+                label="Confirm New Password"
+                type={showConfirmPassword ? "text" : "password"}
+                variant="outlined"
+                margin="dense"
+                value={confirmPassword}
+                error={passwordsMismatch}
+                helperText={passwordsMismatch ? "Passwords do not match" : " "}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter the new password"
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                          onClick={() => setShowConfirmPassword((prev) => !prev)}
+                          edge="end"
+                        >
+                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+
+              <Button
+                type="submit"
+                variant="outlined"
+                color="error"
+                disabled={
+                  passwordLoading ||
+                  !newPassword ||
+                  newPassword.length < 8 ||
+                  newPassword !== confirmPassword
+                }
+                fullWidth
+                sx={{ mt: 2 }}
+              >
+                {passwordLoading ? "Updating..." : "Force Update Password"}
+              </Button>
+            </Box>
+          </>
+        )}
+      </Paper>
+    </>
   );
 }

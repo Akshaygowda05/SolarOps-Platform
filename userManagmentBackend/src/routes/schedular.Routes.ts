@@ -1,6 +1,7 @@
 import express from "express";
 import authenticate from "../middlewares/auth.middlware";
 import SchedulerController from "../controllers/schedular.contoller";
+import { ApplicationContext } from "../middlewares/applicationContext";
 
 const Schedularrouter = express.Router();
 const schedulerController = new SchedulerController();
@@ -9,18 +10,20 @@ const schedulerController = new SchedulerController();
 Schedularrouter.post(
   "/create/scheduler",
   authenticate,
+  ApplicationContext,
   (req, res, next) => schedulerController.createScheduler(req, res).catch(next)
 );
 
 Schedularrouter.delete(
   "/delete/scheduler/:id",
   authenticate,
+  ApplicationContext,
   (req, res, next) => schedulerController.deleteScheduler(req, res).catch(next)
 );
 
 Schedularrouter.get(
   "/get/schedulers",
-  authenticate,
+  authenticate,ApplicationContext,
   (req, res, next) => schedulerController.getSchedulers(req, res).catch(next)
 );
 

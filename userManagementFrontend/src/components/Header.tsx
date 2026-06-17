@@ -47,6 +47,7 @@ function Header() {
 
   const logout = () => {
     localStorage.removeItem("auth");
+    localStorage.removeItem("selectedApplicationId");
     resetAuth();
     window.location.href = "/";
   };

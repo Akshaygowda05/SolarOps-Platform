@@ -13,6 +13,7 @@ import siteConfigRoutes from "./siteconfig.Routes";
 import reportRouter from "./report.routes";
 import Schedularrouter from "./schedular.Routes";
 import tenantRoutes from "./tenant.route";
+import ApplicationRouter from "./application.route";
 
 router.use('/api',userRoutes);
 router.use('/api',chripstackRouter);
@@ -22,7 +23,10 @@ router.use('/api',homeRouter);
 router.use('/api',applicationError);
 router.use('/api',siteConfigRoutes);
 router.use('/api',reportRouter);
-router.use('/api',Schedularrouter,tenantRoutes);
+router.use('/api',Schedularrouter);
+router.use('/api',tenantRoutes);
+router.use('/api',ApplicationRouter);
+
 
 
 

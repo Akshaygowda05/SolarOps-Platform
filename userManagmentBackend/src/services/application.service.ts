@@ -9,9 +9,9 @@ export async function getApplicationService(tenantID: string) {
     let offset = 0;
 
     while (true) {
-      const response = await apiClient.get("/applications", {
+      const response = await apiClient.get("/api/applications", {
         params: {
-          tenantID,
+          tenantId: tenantID,
           limit,
           offset,
         },

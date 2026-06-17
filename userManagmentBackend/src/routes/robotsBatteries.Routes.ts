@@ -5,6 +5,7 @@ import apiClient from "../config/apiclient";
 import authenticate from "../middlewares/auth.middlware";
 import { app } from "../server";
 import { getRedisClient } from "../config/redis";
+import { ApplicationContext } from "../middlewares/applicationContext";
 
 
 const redis = getRedisClient();
@@ -17,7 +18,7 @@ const robotsBatteriesRouter = express.Router();
 
 robotsBatteriesRouter.get(
   `/v1/batteries/:groupId`,
-  authenticate,
+  authenticate,ApplicationContext,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { groupId } = req.params;

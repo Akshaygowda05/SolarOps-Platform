@@ -4,6 +4,6 @@ import tenantController from '../controllers/tenant.controller';
 const tenantRoutes = express.Router();
 
 
-tenantRoutes.get('/admin/tenant',ApplicationContext,tenantController.getTenants)
+tenantRoutes.get('/admin/tenant',tenantController.getTenants)
 
 export default tenantRoutes;
