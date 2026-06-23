@@ -1,5 +1,5 @@
 import { useRecoilValue } from "recoil";
-import { authState } from "../store/authState";
+import { authState, selectedApplicationState } from "../store/authState";
 import { Link, useLocation } from "react-router-dom";
 import { Box, Typography, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useTheme } from "@mui/material";
 
@@ -14,17 +14,30 @@ import PeopleIcon from '@mui/icons-material/People';
 
 function Sidebar() {
   const user = useRecoilValue(authState);
+  const selectedAppId = useRecoilValue(selectedApplicationState);
   const { pathname } = useLocation();
-  //const theme = useTheme();
 
   if (!user) return null;
+
+  // 1. Centralized navigation definitions to eliminate duplication
+  const renderStandardNavItems = () => (
+    <>
+      <NavItem to="/dashboard" label="Dashboard" icon={<DashboardIcon />} active={pathname === "/dashboard"} />
+      <NavItem to="/devices" label="Devices" icon={<SmartToyIcon />} active={pathname === "/devices"} />
+      <NavItem to="/multicast-groups" label="Multicast" icon={<GroupsIcon />} active={pathname === "/multicast-groups"} />
+      {/* Note: Kept original path "/Robotsbatteies" to avoid breaking routes, but fixed label typo to "Batteries" */}
+      <NavItem to="/Robotsbatteies" label="Batteries" icon={<BatteryChargingFullIcon />} active={pathname === "/Robotsbatteies"} />
+      <NavItem to="/logs" label="System Logs" icon={<ReceiptLongIcon />} active={pathname === "/logs"} />
+      <NavItem to="/reports" label="Reports" icon={<ReceiptLongIcon />} active={pathname === "/reports"} />
+    </>
+  );
 
   return (
     <Box sx={{
       position: "fixed",
       top: 68, // Matches Header height
       left: 0,
-      height: "calc(100vh - 64px)",
+      height: "calc(100vh - 68px)", // Updated from 64px to cleanly match your top offset of 68
       width: "240px",
       bgcolor: "background.paper",
       borderRight: "1px solid",
@@ -35,117 +48,38 @@ function Sidebar() {
       transition: "all 0.3s ease",
     }}>
 
-     
-
       <Box sx={{ flexGrow: 1, px: 2, py: 2 }}>
         <List component="nav" sx={{ p: 0 }}>
-          {/* USER NAV */}
-          {user.role === "USER" && (
-            <>
-              <NavItem to="/dashboard" label="Dashboard" icon={<DashboardIcon />} active={pathname === "/dashboard"} />
-              <NavItem to="/devices" label="Devices" icon={<SmartToyIcon />} active={pathname === "/devices"} />
-              <NavItem to="/multicast-groups" label="Multicast" icon={<GroupsIcon />} active={pathname === "/multicast-groups"} />
-              <NavItem to="/Robotsbatteies" label="Battery" icon={<BatteryChargingFullIcon />} active={pathname === "/Robotsbatteies"} />
-              <NavItem to="/logs" label="System Logs" icon={<ReceiptLongIcon />} active={pathname === "/logs"} />
-              <NavItem to="/reports" label="Reports" icon={<ReceiptLongIcon />} active={pathname === "/reports"} />
+          
+          {/* USER view: Always sees the standard navigation */}
+          {user.role === "USER" && renderStandardNavItems()}
 
+          {/* ADMIN view without selected App: Sees administrative tools */}
+          {user.role === "ADMIN" && !selectedAppId && (
+            <>
+              <Typography
+                variant="caption"
+                sx={{
+                  px: 2,
+                  py: 1,
+                  display: "block",
+                  fontWeight: 800,
+                  color: "text.secondary",
+                  letterSpacing: "0.5px"
+                }}
+              >
+                ADMINISTRATION
+              </Typography>
+
+              <NavItem to="/admin" label="Admin Panel" icon={<AdminPanelSettingsIcon />} active={pathname === "/admin"} />
+              <NavItem to="/users" label="Manage Users" icon={<PeopleIcon />} active={pathname === "/users"} />
+              <NavItem to="/tenants" label="Admin Portal" icon={<GroupsIcon />} active={pathname === "/tenants"} />
             </>
           )}
 
-          {/* ADMIN NAV */}
-          {user.role === "ADMIN" && (
-  <>
-    <Typography
-      variant="caption"
-      sx={{
-        px: 2,
-        py: 1,
-        display: "block",
-        fontWeight: 800,
-        color: "text.secondary",
-      }}
-    >
-      ADMINISTRATION
-    </Typography>
+          {/* ADMIN view with selected App: Sees standard features for that scope */}
+          {user.role === "ADMIN" && selectedAppId && renderStandardNavItems()}
 
-    <NavItem
-      to="/admin"
-      label="Admin Panel"
-      icon={<AdminPanelSettingsIcon />}
-      active={pathname === "/admin"}
-    />
-
-    <NavItem
-      to="/users"
-      label="Manage Users"
-      icon={<PeopleIcon />}
-      active={pathname === "/users"}
-    />
-
-    <NavItem
-      to="/tenants"
-      label="Admin Portal"
-      icon={<GroupsIcon />}
-      active={pathname === "/tenants"}
-    />
-
-    <Typography
-      variant="caption"
-      sx={{
-        px: 2,
-        py: 1,
-        mt: 2,
-        display: "block",
-        fontWeight: 800,
-        color: "text.secondary",
-      }}
-    >
-      APPLICATION
-    </Typography>
-
-    <NavItem
-      to="/dashboard"
-      label="Dashboard"
-      icon={<DashboardIcon />}
-      active={pathname === "/dashboard"}
-    />
-
-    <NavItem
-      to="/devices"
-      label="Devices"
-      icon={<SmartToyIcon />}
-      active={pathname === "/devices"}
-    />
-
-    <NavItem
-      to="/multicast-groups"
-      label="Multicast"
-      icon={<GroupsIcon />}
-      active={pathname === "/multicast-groups"}
-    />
-
-    <NavItem
-      to="/Robotsbatteies"
-      label="Battery"
-      icon={<BatteryChargingFullIcon />}
-      active={pathname === "/Robotsbatteies"}
-    />
-
-    <NavItem
-      to="/logs"
-      label="System Logs"
-      icon={<ReceiptLongIcon />}
-      active={pathname === "/logs"}
-    />
-
-    <NavItem
-      to="/reports"
-      label="Reports"
-      icon={<ReceiptLongIcon />}
-      active={pathname === "/reports"}
-    />
-  </>
-)}
         </List>
       </Box>
 
@@ -160,7 +94,14 @@ function Sidebar() {
 }
 
 // Sub-component for Nav Items to keep code clean
-function NavItem({ to, label, icon, active }: { to: string; label: string; icon: any; active: boolean }) {
+interface NavItemProps {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  active: boolean;
+}
+
+function NavItem({ to, label, icon, active }: NavItemProps) {
   const theme = useTheme();
 
   return (
@@ -171,7 +112,9 @@ function NavItem({ to, label, icon, active }: { to: string; label: string; icon:
         sx={{
           borderRadius: 2,
           py: 1.2,
-          bgcolor: active ? (theme.palette.mode === 'light' ? 'primary.lighter' : 'rgba(59, 130, 246, 0.1)') : 'transparent',
+          bgcolor: active 
+            ? (theme.palette.mode === 'light' ? 'primary.lighter' : 'rgba(59, 130, 246, 0.1)') 
+            : 'transparent',
           color: active ? 'primary.main' : 'text.secondary',
           '&:hover': {
             bgcolor: active ? 'none' : 'action.hover',
@@ -187,14 +130,14 @@ function NavItem({ to, label, icon, active }: { to: string; label: string; icon:
         </ListItemIcon>
         <ListItemText 
           primary={label} 
-      slotProps={{
-    primary: {
-      sx: {
-        fontSize: '15px',
-        fontWeight: active ? 800 : 500 
-      },
-    },
-  }}
+          slotProps={{
+            primary: {
+              sx: {
+                fontSize: '15px',
+                fontWeight: active ? 800 : 500 
+              },
+            },
+          }}
         />
         {active && (
           <Box sx={{ 

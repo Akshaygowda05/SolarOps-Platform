@@ -18,6 +18,7 @@ import logo from "../assets/Aegeus-Technologies-logo.png";
 
 import { authState } from "../store/authState";
 import { login } from "../services/User.service";
+import { selectedApplicationState } from "../store/authState";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -25,7 +26,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const [, setAuth] = useRecoilState(authState);
-
+  const [, setSelectedApplication] = useRecoilState(selectedApplicationState);
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -66,6 +67,8 @@ const LoginForm = () => {
 
       if (role === "ADMIN") {
         navigate("/admin");
+        localStorage.removeItem("selectedApplicationId");
+        setSelectedApplication(null);
       } else if (role === "USER") {
         navigate("/dashboard");
       } else {

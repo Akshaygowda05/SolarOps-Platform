@@ -16,6 +16,7 @@ import authenticate from "./middlewares/auth.middlware";
 import { jobSchedulerService } from "./queues/scheduler.jobs";
 import "./worker/scheduler.worker";
 import { checkDatabase } from "./config/DatabaseHealth";
+import { ApplicationContext } from "./middlewares/applicationContext";
 const port = 3000;
 
 export const app = express();
@@ -36,30 +37,47 @@ app.use(express.urlencoded({ extended: true }));
 
 console.log("Starting server...");
 
-
-io.on("connection", (socket:any) => {
+io.on("connection", (socket: any) => {
   try {
+    let applicationId: string | null = null;
     const token = socket.handshake.auth?.token;
+    const selectedAppId = socket.handshake.auth?.selectedAppId;
+
+    if (!token) {
+      loggers.warn("❌ Connection rejected: Missing token.", socket.id);
+      return socket.disconnect();
+    }
+
 
     const decoded = jwt.verify(
       token,
       envconfig.getTokenSecret()
-    ) as { applicationId: string };
+    ) as { applicationId?: string; role?: string }; 
 
-    const applicationId = decoded.applicationId;
+    
+    if (decoded.applicationId) {
+      applicationId = decoded.applicationId;
+    } else if (selectedAppId) {
+      loggers.info(`Admin authenticated. Routing to selected app: ${selectedAppId}`);
+      applicationId = selectedAppId;
+    }
 
+    // 3. If neither yielded an application ID, reject the connection
+    if (!applicationId) {
+      loggers.warn("❌ Connection rejected: No target Application ID provided.", socket.id);
+      return socket.disconnect();
+    }
+
+    // 4. Join the room
     socket.join(applicationId);
-
-    loggers.info(
-      `✅ Client connected: ${socket.id} joined ${applicationId}`
-    );
+    loggers.info(`✅ Client connected: ${socket.id} joined room ${applicationId}`);
 
     socket.on("disconnect", () => {
-      loggers.info("❌ Client disconnected", socket.id);
+      loggers.info(`❌ Client disconnected: ${socket.id}`);
     });
 
   } catch (err) {
-    loggers.warn("❌ Invalid socket token", socket.id);
+    loggers.warn(`❌ Invalid socket token or verification failed for ${socket.id}`);
     socket.disconnect(); 
   }
 });
@@ -79,7 +97,7 @@ async function startServer() {
     });
   });
 
-  app.get(`/api/events`, authenticate, async (req: Request, res: Response) => {
+  app.get(`/api/events`, authenticate, ApplicationContext,async (req: Request, res: Response) => {
     const applicationId = (req as any).applicationId;
     if (!applicationId) {
       return res.status(400).json({ error: "Application ID is required" });

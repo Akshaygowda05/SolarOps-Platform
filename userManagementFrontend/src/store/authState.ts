@@ -15,5 +15,5 @@ export const authState = atom<User>({
 
 export const selectedApplicationState = atom<string | null>({
   key: "selectedApplicationState",
-  default: localStorage.getItem("selectedApplicationId"),
+  default: null,
 });

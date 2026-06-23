@@ -9,16 +9,29 @@ export const useSocketInit = () => {
   useEffect(() => {
     if (!auth.initialized) return;
 
-    if (auth.token) {
-      console.log("🔌 Connecting socket...");
-      connectSocket(auth.token);
-    } else {
-      console.log("🔌 Disconnecting socket...");
+    if (!auth.token) {
+      console.log("🔌 No token found. Disconnecting socket...");
       disconnectSocket();
+      return;
     }
 
+    let appIdToConnect: string | undefined = undefined;
+
+    if (auth.role === "ADMIN") {
+      const savedAppId = localStorage.getItem("selectedApplicationId");
+      if (!savedAppId) {
+        console.log("⚠️ No application selected for ADMIN");
+        return; 
+      }
+      appIdToConnect = savedAppId;
+    }
+
+    console.log("🔌 Connecting socket...");
+    connectSocket(auth.token, appIdToConnect);
+
     return () => {
+      console.log("🧹 Cleaning up socket connection...");
       disconnectSocket();
     };
-  }, [auth.token, auth.initialized]);
+  }, [auth.token, auth.role, auth.initialized]); // Added auth.role to dependencies
 };
