@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { useRecoilValue, useResetRecoilState } from "recoil";
+import { useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil";
 import { authState } from "../store/authState";
 import log from "../assets/Aegeus-Technologies-logo.png";
 import { FiLogOut, FiAlertCircle } from "react-icons/fi";
@@ -10,9 +10,11 @@ import {
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { ColorModeContext } from "../App";
 import { useNavigate } from "react-router-dom";
 import { fetchSiteConfigStatus } from "../services/User.service";
+import { selectedApplicationState } from "../store/authState"; // or applicationState
 
 // Animation for the "Attention" pulse
 const softPulse = keyframes`
@@ -27,11 +29,16 @@ function Header() {
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
   const navigate = useNavigate();
+  const setSelectedApplication = useSetRecoilState(
+  selectedApplicationState
+);
 
   // State for configuration status
   const [isConfigured, setIsConfigured] = useState(true);
 
   useEffect(() => {
+
+    if(user?.role === "ADMIN") return; // Admins don't need to check configuration status
     const checkStatus = async () => {
       try {
         const response = await fetchSiteConfigStatus();
@@ -43,7 +50,7 @@ function Header() {
       }
     };
     checkStatus();
-  }, []);
+  }, [user?.role]);
 
   const logout = () => {
     localStorage.removeItem("auth");
@@ -51,6 +58,16 @@ function Header() {
     resetAuth();
     window.location.href = "/";
   };
+
+  // this is a function to switch the application for an admin user
+
+  const switchApplication = () => {
+  localStorage.removeItem("selectedApplicationId");
+
+  setSelectedApplication(null);
+
+  navigate("/tenants");
+};
 
   return (
     <AppBar 
@@ -103,20 +120,47 @@ function Header() {
         {/* Right Side: Tools & Profile */}
         <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 1.5 } }}>
           
-          {/* Settings Icon with Alert Badge */}
-          <Tooltip title={isConfigured ? "Site Configuration" : "Action Required: Complete Setup"}>
-            <IconButton 
-              onClick={() => navigate("/site-config")} 
-              sx={{ 
-                color: !isConfigured ? 'warning.main' : 'text.primary',
-                animation: !isConfigured ? `${softPulse} 2s infinite` : 'none'
-              }}
-            >
-              <Badge color="error" variant="dot" invisible={isConfigured}>
-                <SettingsSuggestIcon />
-              </Badge>
-            </IconButton>
-          </Tooltip>
+        {user?.role === "ADMIN" ? (
+  <Tooltip title="Switch Application">
+    <IconButton
+      onClick={switchApplication}
+      sx={{
+        color: "text.primary",
+      }}
+    >
+      <GroupsIcon />
+    </IconButton>
+  </Tooltip>
+) : (
+  <Tooltip
+    title={
+      isConfigured
+        ? "Site Configuration"
+        : "Action Required: Complete Setup"
+    }
+  >
+    <IconButton
+      onClick={() => navigate("/site-config")}
+      sx={{
+        color: !isConfigured
+          ? "warning.main"
+          : "text.primary",
+        animation: !isConfigured
+          ? `${softPulse} 2s infinite`
+          : "none",
+      }}
+    >
+      <Badge
+        color="error"
+        variant="dot"
+        invisible={isConfigured}
+      >
+        <SettingsSuggestIcon />
+      </Badge>
+    </IconButton>
+  </Tooltip>
+)}
+           
           
           {/* Theme Toggle */}
           <Tooltip title="Toggle Theme">
