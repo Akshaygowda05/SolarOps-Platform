@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getSocket } from "../services/sockets";
 import { getApplicationLogs } from "../services/User.service";
+import { useRecoilValue } from "recoil";
+import { selectedApplicationState } from "../store/authState";
 
 type Event = {
   type?: string;
@@ -30,6 +32,9 @@ export const ApplicationEvents = () => {
   const [events, setEvents]   = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const selectedAppId =
+  useRecoilValue(selectedApplicationState);
+
 
   useEffect(() => {
     (async () => {
@@ -44,13 +49,20 @@ export const ApplicationEvents = () => {
     })();
   }, []);
 
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-    const handler = (event: Event) => setEvents(prev => [event, ...prev]);
-    socket.on("applicationEvent", handler);
-    return () => { socket.off("applicationEvent", handler); };
-  }, []);
+ useEffect(() => {
+  const socket = getSocket();
+
+  if (!socket) return;
+
+  const handler = (event: Event) =>
+    setEvents(prev => [event, ...prev]);
+
+  socket.on("applicationEvent", handler);
+
+  return () => {
+    socket.off("applicationEvent", handler);
+  };
+}, [selectedAppId]);
 
   return (
     <div style={{ fontFamily: "var(--font-sans, system-ui)", fontSize: 13 }}>

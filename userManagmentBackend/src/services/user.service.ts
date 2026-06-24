@@ -20,9 +20,7 @@ interface userData {
 
 export class UserService {
 
-  // =========================================================================
-  // FIX: Added missing getUserById method so frontend can load profile details
-  // =========================================================================
+ 
   static async getUserById(id: number) {
     try {
       const user = await prisma.user.findUnique({
@@ -211,53 +209,99 @@ export class UserService {
     }
   }
 
-  static async updateUser(userId: number, data: {
-  name?: string;
-  email?: string;
-  role?: Role;
-  isActive?: boolean;
-}) {
+static async updateUser(
+  userId: number,
+  data: {
+    name?: string;
+    email?: string;
+    role?: Role;
+    isActive?: boolean;
+    applicationId?: string;
+    siteName?: string;
+  }
+) {
   try {
     const updateData: any = {};
 
+    // Name
     if (data.name !== undefined) {
-      updateData.name = data.name?.trim();
+      const name = data.name.trim();
+      if (!name) throw new AppError("Name cannot be empty.", StatusCodes.BAD_REQUEST);
+      updateData.name = name;
     }
 
-    // CRITICAL FIX: Block null, undefined, or empty emails
+    // Email
     if (data.email !== undefined) {
-      const cleanEmail = data.email?.trim().toLowerCase();
-      
-      if (!cleanEmail || cleanEmail === "") {
-        throw new AppError('Email address cannot be empty or null.', StatusCodes.BAD_REQUEST);
-      }
+      const email = data.email.trim().toLowerCase();
+      if (!email) throw new AppError("Email cannot be empty.", StatusCodes.BAD_REQUEST);
 
-      // Check if another user is already using this email address
-      const emailConflict = await prisma.user.findUnique({
-        where: { email: cleanEmail }
-      });
+      const emailConflict = await prisma.user.findUnique({ where: { email } });
 
       if (emailConflict && emailConflict.id !== userId) {
-        throw new AppError('This email address is already in use by another account.', StatusCodes.BAD_REQUEST);
+        throw new AppError("Email already in use.", StatusCodes.BAD_REQUEST);
       }
 
-      updateData.email = cleanEmail;
+      updateData.email = email;
     }
 
+    // Role
     if (data.role !== undefined) {
       updateData.role = data.role;
     }
 
+    // Active
     if (data.isActive !== undefined) {
       updateData.isActive = data.isActive;
     }
 
-    // Prevent Prisma from crashing if data object turns out empty
-    if (Object.keys(updateData).length === 0) {
-      throw new AppError('No valid update data provided.', StatusCodes.BAD_REQUEST);
+    // Site Name
+    if (data.siteName !== undefined) {
+      const siteName = data.siteName.trim();
+      if (!siteName) throw new AppError("Site name cannot be empty.", StatusCodes.BAD_REQUEST);
+      updateData.siteName = siteName;
     }
 
-    const updatedUser = await prisma.user.update({
+    // Application ID
+    if (data.applicationId !== undefined) {
+      const app = await prisma.chirpstackApplication.findUnique({
+        where: { chirpstackId: data.applicationId },
+      });
+
+      if (!app) {
+        await syncChirpstackData();
+        throw new AppError("Invalid application ID.", StatusCodes.BAD_REQUEST);
+      }
+
+      updateData.applicationId = data.applicationId;
+    }
+
+    // Prevent empty update
+    if (Object.keys(updateData).length === 0) {
+      throw new AppError("No valid update data provided.", StatusCodes.BAD_REQUEST);
+    }
+
+    // Final validation based on intended role
+    const finalRole = updateData.role ?? (await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    }))?.role;
+
+    if (
+      finalRole === Role.USER &&
+      (!updateData.applicationId || !updateData.siteName)
+    ) {
+      throw new AppError(
+        "Application ID and Site Name are required for USER role.",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
+    if (finalRole === Role.ADMIN) {
+  updateData.applicationId = null;
+  updateData.siteName = null;
+}
+
+    return await prisma.user.update({
       where: { id: userId },
       data: updateData,
       select: {
@@ -269,9 +313,8 @@ export class UserService {
       },
     });
 
-    return updatedUser;
   } catch (error) {
-    loggers.error("Error updating targeted database entity properties:", error);
+    loggers.error("User update failed", { userId, error });
     throw error;
   }
 }

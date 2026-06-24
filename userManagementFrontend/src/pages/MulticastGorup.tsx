@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { fetchGroup, multicastDownlink, fetchSchedularData, deleteSchedular, createSchedular } from "../services/User.service";
-import type {  SchedularData } from "../utils/interfaces";
+import type { SchedularData } from "../utils/interfaces";
 import {
-  Box, Typography, Button, Checkbox, Paper,
-  List, ListItem, ListItemButton, ListItemText, ListItemIcon, Stack,
+  Box, Typography, Button, Paper,
+  Stack, Checkbox, FormControlLabel,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField,
   MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  IconButton, Chip, alpha
+  IconButton, Chip, alpha, Badge,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
@@ -16,9 +16,9 @@ import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRou
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import toast, { Toaster } from "react-hot-toast";
 
-const BRAND = "#169647";
-const BRAND_LIGHT = alpha("#169647", 0.10);
-const BRAND_DARK = "#0f7035";
+const BRAND      = "#169647";
+const BRAND_LIGHT = alpha("#169647", 0.08);
+const BRAND_DARK  = "#0f7035";
 
 const DATA_LABEL_MAP: Record<string, { label: string; color: "success" | "error" | "default" | "warning" }> = {
   "Ag==": { label: "Start",  color: "success" },
@@ -27,34 +27,28 @@ const DATA_LABEL_MAP: Record<string, { label: string; color: "success" | "error"
   "BQ==": { label: "Reboot", color: "warning" },
 };
 
-/* ─── tiny keyframe injected once ─── */
 const ANIM_STYLE = `
 @keyframes mcFadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0);    }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
-@keyframes mcPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(22,150,71,0.35); }
-  50%       { box-shadow: 0 0 0 6px rgba(22,150,71,0);  }
-}
-.mc-row-enter { animation: mcFadeUp 0.22s ease both; }
 `;
 
 const MulticastControl = () => {
-  const [groups,       setGroups]       = useState<any[]>([]);
-  const [selected,     setSelected]     = useState<{ id: string; name: string }[]>([]);
-  const [loading,      setLoading]      = useState(false);
-  const [getSchedule,  setGetSchedule]  = useState<any>(null);
+  const [groups,      setGroups]      = useState<any[]>([]);
+  const [selected,    setSelected]    = useState<{ id: string; name: string }[]>([]);
+  const [loading,     setLoading]     = useState(false);
+  const [getSchedule, setGetSchedule] = useState<any>(null);
 
   const [actionModalOpen,    setActionModalOpen]    = useState(false);
   const [viewSchedulersOpen, setViewSchedulersOpen] = useState(false);
 
-  const [currentData,    setCurrentData]    = useState("");
-  const [executionType,  setExecutionType]  = useState<"instant" | "schedule">("instant");
-  const [jobType,        setJobType]        = useState<"DAILY" | "ONE_TIME">("DAILY");
-  const [scheduleTime,   setScheduleTime]   = useState("");
+  const [currentData,   setCurrentData]   = useState("");
+  const [executionType, setExecutionType] = useState<"instant" | "schedule">("instant");
+  const [jobType,       setJobType]       = useState<"DAILY" | "ONE_TIME">("DAILY");
+  const [scheduleTime,  setScheduleTime]  = useState("");
 
-  /* ── data fetchers ── */
+  /* ── fetchers ── */
   const fetchSchedule = async () => {
     try {
       const res = await fetchSchedularData();
@@ -69,7 +63,7 @@ const MulticastControl = () => {
     try {
       const res = await fetchGroup();
       setGroups(res.data.result || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load blocks");
     }
   };
@@ -82,11 +76,28 @@ const MulticastControl = () => {
     document.head.appendChild(style);
   }, []);
 
-  /* ── delete ── */
+  /* ── select all ── */
+  const allSelected  = groups.length > 0 && selected.length === groups.length;
+  const someSelected = selected.length > 0 && selected.length < groups.length;
+
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelected([]);
+    } else {
+      setSelected(groups.map(g => ({ id: g.id, name: g.name })));
+    }
+  };
+
+  const toggleSelect = (id: string, name: string) =>
+    setSelected(prev =>
+      prev.some(g => g.id === id) ? prev.filter(g => g.id !== id) : [...prev, { id, name }]
+    );
+
+  /* ── delete scheduler ── */
   const deleteSchedule = async (id: number) => {
     try {
       await deleteSchedular(id);
-      toast.success("Schedule deleted successfully");
+      toast.success("Schedule deleted");
       fetchSchedule();
     } catch {
       toast.error("Failed to delete schedule");
@@ -145,214 +156,260 @@ const MulticastControl = () => {
     }
   };
 
-  const toggleSelect = (id: string, name: string) =>
-    setSelected(prev =>
-      prev.some(g => g.id === id) ? prev.filter(g => g.id !== id) : [...prev, { id, name }]
-    );
-
-  /* ── command buttons config ── */
   const commands = [
-    { key: "Ag==", label: "Start",  icon: <PlayArrowRoundedIcon />,         variant: "contained" as const, color: BRAND,     hoverColor: BRAND_DARK },
-    { key: "Aw==", label: "Stop",   icon: <StopRoundedIcon />,              variant: "contained" as const, color: "#d32f2f", hoverColor: "#b71c1c" },
-    { key: "BA==", label: "Return", icon: <ReplayRoundedIcon />,            variant: "outlined"  as const, color: BRAND,     hoverColor: BRAND_DARK },
-    { key: "BQ==", label: "Reboot", icon: <PowerSettingsNewRoundedIcon />,  variant: "outlined"  as const, color: "#ed6c02", hoverColor: "#e65100" },
+    { key: "Ag==", label: "Start Now",       icon: <PlayArrowRoundedIcon sx={{ fontSize: 18 }} />,        color: BRAND,      hoverColor: BRAND_DARK },
+    { key: "Aw==", label: "Stop Now",        icon: <StopRoundedIcon sx={{ fontSize: 18 }} />,             color: "#d32f2f",  hoverColor: "#b71c1c"  },
+    { key: "BA==", label: "Return to Dock",  icon: <ReplayRoundedIcon sx={{ fontSize: 18 }} />,           color: "#455a64",  hoverColor: "#263238"  },
+    { key: "BQ==", label: "Reboot",          icon: <PowerSettingsNewRoundedIcon sx={{ fontSize: 18 }} />, color: "#ed6c02",  hoverColor: "#e65100"  },
   ];
 
   const scheduleCount = getSchedule?.data?.length ?? 0;
   const cmdInfo = DATA_LABEL_MAP[currentData];
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 600, mx: "auto" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+        p: { xs: 2, sm: 3 },
+        maxWidth: 900,
+        mx: "auto",
+      }}
+    >
       <Toaster position="top-right" reverseOrder={false} toastOptions={{ style: { borderRadius: 10, fontSize: 14 } }} />
 
       {/* ── Header ── */}
-      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }} >
+      <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 2.5 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: "-0.3px" }}>
-            Block Wise Control
+            Block-wise / <span style={{ color: "orange" }}>
+    Plant Scheduling of Robots
+  </span>
           </Typography>
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
             {selected.length > 0
-              ? `${selected.length} block${selected.length > 1 ? "s" : ""} selected`
+              ? `${selected.length} of ${groups.length} block${groups.length !== 1 ? "s" : ""} selected`
               : "Select blocks to send commands"}
           </Typography>
         </Box>
 
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<CalendarTodayRoundedIcon sx={{ fontSize: 16 }} />}
-          onClick={() => setViewSchedulersOpen(true)}
+        <Badge
+          badgeContent={scheduleCount}
+          invisible={scheduleCount === 0}
           sx={{
-            borderRadius: 2,
-            borderColor: BRAND,
-            color: BRAND,
-            textTransform: "none",
-            fontWeight: 500,
-            fontSize: 13,
-            px: 5,
-            marginLeft: 30,
-            "&:hover": { borderColor: BRAND_DARK, bgcolor: BRAND_LIGHT },
+            "& .MuiBadge-badge": {
+              bgcolor: BRAND,
+              color: "#fff",
+              fontSize: 11,
+              fontWeight: 700,
+              minWidth: 18,
+              height: 18,
+              borderRadius: "9px",
+            },
           }}
         >
-          Schedulers
-          {scheduleCount > 0 && (
-            <Box component="span" sx={{
-              ml: 0.8, display: "inline-flex", alignItems: "center", justifyContent: "center",
-              bgcolor: BRAND, color: "#fff", borderRadius: "50%",
-              width: 20, height: 18, fontSize: 11, fontWeight: 700,
-            }}>
-              {scheduleCount}
-            </Box>
-          )}
-        </Button>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<CalendarTodayRoundedIcon sx={{ fontSize: 15 }} />}
+            onClick={() => setViewSchedulersOpen(true)}
+            sx={{
+              borderRadius: 2.5,
+              bgcolor: "#1a2535",
+              color: "#fff",
+              textTransform: "none",
+              fontWeight: 600,
+              fontSize: 13,
+              px: 2.5,
+              boxShadow: "none",
+              "&:hover": { bgcolor: "#0d1b2a", boxShadow: "none" },
+            }}
+          >
+            View Scheduled Tasks
+          </Button>
+        </Badge>
       </Stack>
 
-      {/* ── Block List ── */}
+      {/* ── Select All ── */}
+      <Box sx={{ mb: 1.5 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={allSelected}
+              indeterminate={someSelected}
+              onChange={handleSelectAll}
+              size="small"
+              sx={{
+                color: "text.disabled",
+                "&.Mui-checked":       { color: BRAND },
+                "&.MuiCheckbox-indeterminate": { color: BRAND },
+              }}
+            />
+          }
+          label={
+            <Typography variant="body2" sx={{ fontWeight: 500, color: "text.secondary" }}>
+              Select All Groups
+            </Typography>
+          }
+        />
+      </Box>
+
+      {/* ── Block Card Grid ── */}
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          mb: 2,
+        }}
+      >
+        {groups.length === 0 ? (
+          <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
+            <Typography variant="body2">No blocks available</Typography>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+              gap: 2,
+            }}
+          >
+            {groups.map((group, idx) => {
+              const isSelected = selected.some(g => g.id === group.id);
+              return (
+                <Paper
+                  key={group.id}
+                  variant="outlined"
+                  onClick={() => toggleSelect(group.id, group.name)}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 1,
+                    cursor: "pointer",
+                    userSelect: "none",
+                    position: "relative",
+                    borderColor: isSelected ? BRAND : "divider",
+                    borderWidth: isSelected ? 2 : 1,
+                    bgcolor: isSelected ? BRAND_LIGHT : "background.paper",
+                    transition: "all 0.15s ease",
+                    animation: `mcFadeUp 0.18s ease ${idx * 0.04}s both`,
+                    "&:hover": {
+                      borderColor: BRAND,
+                      boxShadow: `0 0 0 1px ${alpha(BRAND, 0.2)}`,
+                      bgcolor: isSelected ? alpha(BRAND, 0.1) : alpha(BRAND, 0.03),
+                    },
+                  }}
+                >
+                  {/* checkbox top-right */}
+                  <Checkbox
+                    checked={isSelected}
+                    size="small"
+                    disableRipple
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => toggleSelect(group.id, group.name)}
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      p: 0.5,
+                      color: "text.disabled",
+                      "&.Mui-checked": { color: BRAND },
+                    }}
+                  />
+
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 15,
+                      color: isSelected ? BRAND_DARK : "text.primary",
+                      mb: 0.5,
+                      pr: 3,
+                    }}
+                  >
+                    {group.name}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: BRAND, fontWeight: 500 }}>
+                    {group.region || "—"}
+                  </Typography>
+                </Paper>
+              );
+            })}
+          </Box>
+        )}
+      </Box>
+
+      {/* ── Bottom Command Bar ── */}
       <Paper
         variant="outlined"
         sx={{
           borderRadius: 3,
-          mb: 3,
-          overflow: "hidden",
+          px: 2,
+          py: 1.5,
           borderColor: "divider",
           bgcolor: "background.paper",
-          transition: "box-shadow 0.2s",
-          "&:hover": { boxShadow: `0 0 0 1.5px ${alpha(BRAND, 0.25)}` },
         }}
       >
-        {groups.length === 0 ? (
-          <Box sx={{ py: 5, textAlign: "center", color: "text.secondary" }}>
-            <Typography variant="body2">No blocks available</Typography>
-          </Box>
-        ) : (
-          <List disablePadding>
-            {groups.map((group, idx) => {
-              const isSelected = selected.some(g => g.id === group.id);
-              return (
-                <ListItem
-                  key={group.id}
-                  disablePadding
-                  divider={idx < groups.length - 1}
-                  sx={{
-                    animation: `mcFadeUp 0.2s ease ${idx * 0.04}s both`,
-                    bgcolor: isSelected ? BRAND_LIGHT : "transparent",
-                    transition: "background-color 0.15s ease",
-                  }}
-                >
-                  <ListItemButton
-                    onClick={() => toggleSelect(group.id, group.name)}
-                    sx={{ py: 1.2, px: 2, "&:hover": { bgcolor: isSelected ? alpha(BRAND, 0.14) : undefined } }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 40 }}>
-                      <Checkbox
-                        checked={isSelected}
-                        disableRipple
-                        size="small"
-                        sx={{
-                          p: 0,
-                          color: "text.disabled",
-                          "&.Mui-checked": { color: BRAND },
-                        }}
-                      />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2" sx={{ color: isSelected ? BRAND : "text.primary" , fontWeight: isSelected ? 600 : 500 }}>
-                          {group.name}
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                          {group.region || "No region assigned"}
-                        </Typography>
-                      }
-                    />
-                    {isSelected && (
-                      <Box sx={{
-                        width: 8, height: 8, borderRadius: "50%", bgcolor: BRAND,
-                        animation: "mcPulse 1.6s ease infinite",
-                      }} />
-                    )}
-                  </ListItemButton>
-                </ListItem>
-              );
-            })}
-          </List>
-        )}
+         <Stack
+          direction="row"
+          sx={{
+          spacing: 1.5,
+          alignItems: "center",
+          justifyContent: "center",
+          flexWrap: "wrap",
+          gap: 1 }}
+        >
+          {commands.map(({ key, label, icon, color }) => (
+            <Button
+              key={key}
+              variant="outlined"
+              startIcon={icon}
+              onClick={() => handleActionClick(key)}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: 13,
+                py: 0.8,
+                px: 2,
+                borderColor: alpha(color, 0.35),
+                color: "text.secondary",
+                transition: "all 0.15s ease",
+                "&:hover": {
+                  borderColor: color,
+                  color: color,
+                  bgcolor: alpha(color, 0.06),
+                },
+              }}
+            >
+              {label}
+            </Button>
+          ))}
+        </Stack>
       </Paper>
-
-      {/* ── Command Buttons ── */}
-      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}>
-        {commands.map(({ key, label, icon, variant, color, hoverColor }) => (
-          <Button
-            key={key}
-            variant={variant}
-            startIcon={icon}
-            onClick={() => handleActionClick(key)}
-            sx={{
-              borderRadius: 2.5,
-              textTransform: "none",
-              fontWeight: 600,
-              fontSize: 14,
-              py: 1.1,
-              letterSpacing: "0.1px",
-              transition: "all 0.18s ease",
-              ...(variant === "contained"
-                ? {
-                    bgcolor: color,
-                    color: "#fff",
-                    boxShadow: "none",
-                    "&:hover": { bgcolor: hoverColor, boxShadow: `0 4px 12px ${alpha(color, 0.4)}`, transform: "translateY(-1px)" },
-                    "&:active": { transform: "translateY(0)" },
-                  }
-                : {
-                    borderColor: color,
-                    color: color,
-                    "&:hover": { borderColor: hoverColor, bgcolor: alpha(color, 0.07), color: hoverColor },
-                  }),
-            }}
-          >
-            {label}
-          </Button>
-        ))}
-      </Box>
 
       {/* ════════════════════════════════════════
           MODAL 1 — Execute Command
       ════════════════════════════════════════ */}
- <Dialog
-  open={actionModalOpen}
-  onClose={() => setActionModalOpen(false)}
-  fullWidth
-  maxWidth="xs"
-  slotProps={{
-    paper: {
-      sx: {
-        borderRadius: 3,
-        bgcolor: "background.paper",
-        backgroundImage: "none",
-      },
-    },
-    transition: {
-      style: { 
-        transition: "all 0.2s ease" 
-      },
-    },
-  }}
->
-
+      <Dialog
+        open={actionModalOpen}
+        onClose={() => setActionModalOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        slotProps={{
+          paper: { sx: { borderRadius: 3, bgcolor: "background.paper", backgroundImage: "none" } },
+        }}
+      >
         <DialogTitle sx={{ pb: 1 }}>
-          <Stack direction="row" sx={{ alignItems: "center" }} spacing={1.5}>
+          <Stack direction="row" sx={{ alignItems: "center", spacing: 1.5 }}>
             <Box sx={{
               width: 36, height: 36, borderRadius: 2,
               bgcolor: BRAND_LIGHT, display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              {commands.find(c => c.key === currentData)?.icon &&
-                <Box sx={{ color: BRAND, display: "flex" }}>
-                  {commands.find(c => c.key === currentData)?.icon}
-                </Box>
-              }
+              <Box sx={{ color: BRAND, display: "flex" }}>
+                {commands.find(c => c.key === currentData)?.icon}
+              </Box>
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
@@ -370,13 +427,8 @@ const MulticastControl = () => {
         <DialogContent dividers sx={{ pt: 2 }}>
           <Stack spacing={2}>
             <TextField
-              select
-              label="Execution Mode"
-              value={executionType}
+              select label="Execution Mode" value={executionType} fullWidth size="small" sx={selectSx}
               onChange={(e) => setExecutionType(e.target.value as "instant" | "schedule")}
-              fullWidth
-              size="small"
-              sx={selectSx}
             >
               <MenuItem value="instant">⚡ Send Now</MenuItem>
               <MenuItem value="schedule">🕐 Schedule</MenuItem>
@@ -385,35 +437,22 @@ const MulticastControl = () => {
             {executionType === "schedule" && (
               <>
                 <TextField
-                  select
-                  label="Recurrence"
-                  value={jobType}
+                  select label="Recurrence" value={jobType} fullWidth size="small" sx={selectSx}
                   onChange={(e) => setJobType(e.target.value as "DAILY" | "ONE_TIME")}
-                  fullWidth
-                  size="small"
-                  sx={selectSx}
                 >
                   <MenuItem value="DAILY">Daily</MenuItem>
                   <MenuItem value="ONE_TIME">One Time</MenuItem>
                 </TextField>
 
                 <TextField
-                  label="Execution Time"
-                  type="time"
-                  value={scheduleTime}
+                  label="Execution Time" type="time" value={scheduleTime} fullWidth size="small"
                   onChange={(e) => setScheduleTime(e.target.value)}
-                  fullWidth
-                  size="small"
-                 slotProps={{
-    inputLabel: {
-      shrink: true,
-    },}}
+                  slotProps={{ inputLabel: { shrink: true } }}
                   sx={selectSx}
                 />
               </>
             )}
 
-            {/* Selected blocks preview */}
             {selected.length > 0 && (
               <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: BRAND_LIGHT, border: `1px solid ${alpha(BRAND, 0.2)}` }}>
                 <Typography variant="caption" sx={{ color: BRAND, fontWeight: 600, display: "block", mb: 0.5 }}>
@@ -435,22 +474,16 @@ const MulticastControl = () => {
 
         <DialogActions sx={{ p: 2, gap: 1 }}>
           <Button
-            onClick={() => setActionModalOpen(false)}
-            color="inherit"
+            onClick={() => setActionModalOpen(false)} color="inherit"
             sx={{ borderRadius: 2, textTransform: "none", fontWeight: 500 }}
           >
             Cancel
           </Button>
           <Button
-            onClick={handleConfirmAction}
-            variant="contained"
-            disabled={loading}
+            onClick={handleConfirmAction} variant="contained" disabled={loading}
             sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 600,
-              bgcolor: BRAND,
-              boxShadow: "none",
+              borderRadius: 2, textTransform: "none", fontWeight: 600,
+              bgcolor: BRAND, boxShadow: "none",
               "&:hover": { bgcolor: BRAND_DARK, boxShadow: `0 4px 12px ${alpha(BRAND, 0.4)}` },
               "&.Mui-disabled": { bgcolor: alpha(BRAND, 0.3), color: "#fff" },
             }}
@@ -466,32 +499,27 @@ const MulticastControl = () => {
       <Dialog
         open={viewSchedulersOpen}
         onClose={() => setViewSchedulersOpen(false)}
-        fullWidth
-        maxWidth="md"
+        fullWidth maxWidth="md"
         slotProps={{
-          paper: {
-            sx: { borderRadius: 3, bgcolor: "background.paper", backgroundImage: "none" },
-          }
+          paper: { sx: { borderRadius: 3, bgcolor: "background.paper", backgroundImage: "none" } },
         }}
       >
         <DialogTitle>
-          <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
-            <Stack direction="row" sx={{ alignItems: "center" }} spacing={1.5}>
-              <Box sx={{
-                width: 36, height: 36, borderRadius: 2,
-                bgcolor: BRAND_LIGHT, display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <CalendarTodayRoundedIcon sx={{ fontSize: 18, color: BRAND }} />
-              </Box>
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                  Active Schedulers
-                </Typography>
-                <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  {scheduleCount} task{scheduleCount !== 1 ? "s" : ""} scheduled
-                </Typography>
-              </Box>
-            </Stack>
+          <Stack direction="row" sx={{ alignItems: "center", spacing: 1.5 }}>
+            <Box sx={{
+              width: 36, height: 36, borderRadius: 2,
+              bgcolor: BRAND_LIGHT, display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <CalendarTodayRoundedIcon sx={{ fontSize: 18, color: BRAND }} />
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                Active Schedulers
+              </Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                {scheduleCount} task{scheduleCount !== 1 ? "s" : ""} scheduled
+              </Typography>
+            </Box>
           </Stack>
         </DialogTitle>
 
@@ -513,9 +541,7 @@ const MulticastControl = () => {
                     const info = DATA_LABEL_MAP[sched.data];
                     return (
                       <TableRow
-                        key={sched.id}
-                        hover
-                        className="mc-row-enter"
+                        key={sched.id} hover
                         style={{ animationDelay: `${idx * 0.04}s` }}
                         sx={{ "&:last-child td": { border: 0 } }}
                       >
@@ -527,24 +553,18 @@ const MulticastControl = () => {
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={info?.label ?? sched.data}
-                            size="small"
+                            label={info?.label ?? sched.data} size="small"
                             sx={{
-                              fontSize: 11,
-                              fontWeight: 700,
-                              height: 22,
-                              ...(info?.color === "success" && { bgcolor: alpha(BRAND, 0.12), color: BRAND_DARK }),
-                              ...(info?.color === "error"   && { bgcolor: alpha("#d32f2f", 0.1), color: "#b71c1c" }),
-                              ...(info?.color === "warning" && { bgcolor: alpha("#ed6c02", 0.1), color: "#e65100" }),
-                              ...(info?.color === "default" && { bgcolor: "action.selected", color: "text.secondary" }),
+                              fontSize: 11, fontWeight: 700, height: 22,
+                              ...(info?.color === "success" && { bgcolor: alpha(BRAND, 0.12),      color: BRAND_DARK   }),
+                              ...(info?.color === "error"   && { bgcolor: alpha("#d32f2f", 0.1),   color: "#b71c1c"    }),
+                              ...(info?.color === "warning" && { bgcolor: alpha("#ed6c02", 0.1),   color: "#e65100"    }),
+                              ...(info?.color === "default" && { bgcolor: "action.selected",       color: "text.secondary" }),
                             }}
                           />
                         </TableCell>
                         <TableCell>
-                          <Typography variant="caption" sx={{
-                            fontWeight: 600,
-                            color: sched.jobType === "DAILY" ? BRAND : "text.secondary",
-                          }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: sched.jobType === "DAILY" ? BRAND : "text.secondary" }}>
                             {sched.jobType}
                           </Typography>
                         </TableCell>
@@ -553,11 +573,9 @@ const MulticastControl = () => {
                         </TableCell>
                         <TableCell align="right">
                           <IconButton
-                            size="small"
-                            onClick={() => deleteSchedule(sched.id)}
+                            size="small" onClick={() => deleteSchedule(sched.id)}
                             sx={{
-                              color: "text.disabled",
-                              borderRadius: 1.5,
+                              color: "text.disabled", borderRadius: 1.5,
                               "&:hover": { color: "#d32f2f", bgcolor: alpha("#d32f2f", 0.08) },
                               transition: "all 0.15s ease",
                             }}
@@ -574,9 +592,9 @@ const MulticastControl = () => {
           ) : (
             <Box sx={{ py: 7, textAlign: "center" }}>
               <Box sx={{
-                width: 48, height: 48, borderRadius: 3,
-                bgcolor: BRAND_LIGHT, display: "flex", alignItems: "center",
-                justifyContent: "center", mx: "auto", mb: 2,
+                width: 48, height: 48, borderRadius: 3, bgcolor: BRAND_LIGHT,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                mx: "auto", mb: 2,
               }}>
                 <CalendarTodayRoundedIcon sx={{ fontSize: 22, color: BRAND }} />
               </Box>
@@ -588,14 +606,10 @@ const MulticastControl = () => {
 
         <DialogActions sx={{ p: 2 }}>
           <Button
-            onClick={() => setViewSchedulersOpen(false)}
-            variant="outlined"
+            onClick={() => setViewSchedulersOpen(false)} variant="outlined"
             sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 600,
-              borderColor: BRAND,
-              color: BRAND,
+              borderRadius: 2, textTransform: "none", fontWeight: 600,
+              borderColor: BRAND, color: BRAND,
               "&:hover": { borderColor: BRAND_DARK, bgcolor: BRAND_LIGHT },
             }}
           >
@@ -607,11 +621,10 @@ const MulticastControl = () => {
   );
 };
 
-/* shared select field override */
 const selectSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: 2,
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: BRAND },
+    "&:hover .MuiOutlinedInput-notchedOutline":  { borderColor: BRAND },
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: BRAND },
   },
   "& .MuiInputLabel-root.Mui-focused": { color: BRAND },

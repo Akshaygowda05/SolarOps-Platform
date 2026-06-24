@@ -376,7 +376,7 @@ function Report() {
       </Grid>
 
       {/* DETAILED LOGS */}
-      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 1, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
         <Divider />
         <Table>
           <TableHead sx={{ bgcolor: alpha(theme.palette.action.hover, 0.4) }}>

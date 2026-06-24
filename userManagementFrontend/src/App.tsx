@@ -20,7 +20,7 @@ import Report from "./pages/Report";
 import EditUser from "./pages/EditUser";
 import AdminPortal from "./pages/Tenants"; 
 import AdminApplicationGuard from "./components/AdminApplicationGuard";
-
+import './index.css'
 // so ondu context create maditivi, admele adannu useContext hook use madi consume madtivi
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
@@ -44,18 +44,21 @@ function App() {
     },
   }), []);
 
-  // ✅ 3. Create the actual MUI Theme object
-  const theme = useMemo(() => createTheme({
-    palette: {
-      mode,
-      primary: { main: "#169647" },
-      background: {
-        default: mode === "light" ? "#fbfcfd" : "#0f172a",
-        paper: mode === "light" ? "#ffffff" : "#1e293b",
-      },
+// ✅ Update the actual MUI Theme object
+const theme = useMemo(() => createTheme({
+  palette: {
+    mode,
+    primary: { main: "#169647" },
+    background: {
+      default: mode === "light" ? "#fbfcfd" : "#0f172a",
+      paper: mode === "light" ? "#ffffff" : "#1e293b",
     },
-    shape: { borderRadius: 12 },
-  }), [mode]);
+  },
+  typography: {
+    fontFamily: "'Open Sans', sans-serif",
+  },
+  shape: { borderRadius: 12 },
+}), [mode]);
 
   return (
     <ColorModeContext.Provider value={colorMode}>

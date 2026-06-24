@@ -46,12 +46,14 @@ export default function EditUser() {
   const userId = urlId ? parseInt(urlId, 10) : null;
   const isValidUserId = !!userId && !isNaN(userId);
 
-  // Profile state
+  // Profile state tracking application ID and site name
   const [userData, setUserData] = useState({
     name: "",
     email: "",
     role: "USER",
     isActive: true,
+    applicationId: "",
+    siteName: "",
   });
 
   // Password state
@@ -84,6 +86,8 @@ export default function EditUser() {
           email: data.email || "",
           role: data.role || "USER",
           isActive: data.isActive !== undefined ? data.isActive : true,
+          applicationId: data.applicationId || "",
+          siteName: data.siteName || "",
         });
       } catch (error: any) {
         console.error("Error fetching user:", error);
@@ -97,6 +101,10 @@ export default function EditUser() {
   }, [userId, urlId, isValidUserId]);
 
   const isEmailEmpty = !userData.email || userData.email.trim() === "";
+  
+  // Dynamic validation matching your backend rules
+  const isUserRole = userData.role === "USER";
+  const isMissingUserFields = isUserRole && (!userData.applicationId.trim() || !userData.siteName.trim());
 
   // 2. Update profile
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -106,14 +114,29 @@ export default function EditUser() {
       return;
     }
 
+    if (isMissingUserFields) {
+      toast.error("Application ID and Site Name are required for the USER role.");
+      return;
+    }
+
     setProfileLoading(true);
+
+    // Build conditional payload safely
+    const payload: any = {
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      isActive: userData.isActive,
+    };
+
+    // Only append user tracking fields if configuration is USER
+    if (isUserRole) {
+      payload.applicationId = userData.applicationId;
+      payload.siteName = userData.siteName;
+    }
+
     try {
-      await updateUser(userId!, {
-        name: userData.name,
-        email: userData.email,
-        role: userData.role,
-        isActive: userData.isActive,
-      });
+      await updateUser(userId!, payload);
       toast.success("Profile updated successfully!");
     } catch (error: any) {
       console.error("Error updating profile:", error);
@@ -229,6 +252,33 @@ export default function EditUser() {
                 <MenuItem value="ADMIN">Administrator</MenuItem>
               </TextField>
 
+              {/* Conditional rendering based on role layout */}
+              {isUserRole && (
+                <>
+                  <TextField
+                    fullWidth
+                    label="Application ID"
+                    variant="outlined"
+                    margin="dense"
+                    value={userData.applicationId}
+                    error={!userData.applicationId.trim()}
+                    helperText={!userData.applicationId.trim() ? "Application ID is required for users" : ""}
+                    onChange={(e) => setUserData({ ...userData, applicationId: e.target.value })}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="Site Name"
+                    variant="outlined"
+                    margin="dense"
+                    value={userData.siteName}
+                    error={!userData.siteName.trim()}
+                    helperText={!userData.siteName.trim() ? "Site Name is required for users" : ""}
+                    onChange={(e) => setUserData({ ...userData, siteName: e.target.value })}
+                  />
+                </>
+              )}
+
               <Box sx={{ mt: 1, mb: 2 }}>
                 <FormControlLabel
                   control={
@@ -246,7 +296,7 @@ export default function EditUser() {
                 type="submit"
                 variant="contained"
                 color="primary"
-                disabled={profileLoading || isEmailEmpty}
+                disabled={profileLoading || isEmailEmpty || isMissingUserFields}
                 fullWidth
               >
                 {profileLoading ? "Saving..." : "Save Profile Data"}

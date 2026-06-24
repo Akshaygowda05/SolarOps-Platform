@@ -8,7 +8,7 @@ export const useSocketInit = () => {
   const auth = useRecoilValue(authState);
   const selectedAppId = useRecoilValue(selectedApplicationState);
 
-  useEffect(() => {
+useEffect(() => {
   if (!auth.initialized) return;
 
   if (!auth.token) {
