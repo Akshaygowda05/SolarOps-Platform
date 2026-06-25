@@ -26,10 +26,7 @@ export const connectSocket = (token?: string, selectedAppId?: string) => {
   return socket;
 };
 
-export const getSocket = () => {
-  if (!socket) throw new Error("Socket not initialized");
-  return socket;
-};
+export const getSocket = () => socket;
 
 export const disconnectSocket = () => {
   if (socket) {

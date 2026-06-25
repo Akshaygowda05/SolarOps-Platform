@@ -44,6 +44,7 @@ export default function AdminPortal() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+     console.log("ADMIN PORTAL MOUNTED");
     resetSelectedApplication();
     localStorage.removeItem("selectedApplicationId");
     fetchTenants();
