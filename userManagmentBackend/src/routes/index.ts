@@ -14,6 +14,7 @@ import reportRouter from "./report.routes";
 import Schedularrouter from "./schedular.Routes";
 import tenantRoutes from "./tenant.route";
 import ApplicationRouter from "./application.route";
+import chatRouter from "./chats.routes";
 
 router.use('/api',userRoutes);
 router.use('/api',chripstackRouter);
@@ -26,6 +27,7 @@ router.use('/api',reportRouter);
 router.use('/api',Schedularrouter);
 router.use('/api',tenantRoutes);
 router.use('/api',ApplicationRouter);
+router.use('/api',chatRouter);
 
 
 
