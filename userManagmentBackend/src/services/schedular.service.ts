@@ -121,6 +121,31 @@ class SchedulerService {
     const result = await schedulerQueue.getDelayed(0, -1);
     return result;
   }
+
+
+  async getDummySchedularForAi(){
+    return [
+      {
+        id:1,
+        blockName:"Block2",
+        frequnecy:"daily",
+        datetime:"12:00pm"
+      },
+      {
+        id:2,
+        blockName:"Block1",
+        frequnecy:"one-time",
+        datetime:"11:00pm"
+      },
+       {
+        id:3,
+        blockName:"Block5",
+        frequnecy:"one-time",
+        datetime:"10:00pm"
+      }
+    ]
+    
+  }
 }
 
 export const SchedulerServiceInstance = new SchedulerService();
