@@ -1,10 +1,10 @@
 // controllers/chat.controller.ts
 
 import { Request, Response } from "express";
-import { AIService } from "../services/ai.service";
 import AppError from "../utils/AppError";
 import { StatusCodes } from "http-status-codes";
 import { toolExecuter } from "../services/tool-executor.service";
+import { createIoTAgent } from "../ai/aegent.ai";
 
 export class ChatController {
   static async chat(req: Request, res: Response) {
@@ -24,17 +24,24 @@ export class ChatController {
         });
       }
 
-      const reply = await AIService.generate(message,application);
+    const agent =createIoTAgent(application)
 
-      console.log("iam here at controller after ai gave response",reply)
+      const reply = await agent.invoke({
+        messages:[{
+          role:"user",
+          content:message
+        }]
+      })
 
-      const aiOutput = await toolExecuter(reply)
+      const response = reply.messages[reply.messages.length -1]
+      console.log("this is i need to know where how response is it",reply)
+
   
        
 
       return res.status(200).json({
         success: true,
-        aiOutput
+        response:response.content
       });
 
     } catch (err: any) {
