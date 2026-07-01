@@ -5,7 +5,7 @@ export async function getmulticastgroups(applicationId:string,limit:Number) {
         const response = await apiClient.get('/api/multicast-groups', {
       params: {
         limit: limit || 100,
-        applicationId: applicationId
+        applicationId: applicationId,
       }
     });
 
