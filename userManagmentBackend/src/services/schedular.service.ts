@@ -121,9 +121,6 @@ class SchedulerService {
     const result = await schedulerQueue.getDelayed(0, -1);
     return result;
   }
-
-
- 
 }
 
 export const SchedulerServiceInstance = new SchedulerService();

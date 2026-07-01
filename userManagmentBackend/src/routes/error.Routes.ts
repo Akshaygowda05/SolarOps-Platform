@@ -10,4 +10,4 @@ applicationError.get("/errors",authenticate,ApplicationContext ,errorController.
 applicationError.get("/warnings", authenticate, ApplicationContext, errorController.getWarningDevices);
 applicationError.get("/critical", authenticate, ApplicationContext, errorController.getCriticalDevices);
 
-export default applicationError;
+export default applicationError;1983

@@ -2,8 +2,8 @@
 
 import { Request, Response } from "express";
 import AppError from "../utils/AppError";
+
 import { StatusCodes } from "http-status-codes";
-import { toolExecuter } from "../services/tool-executor.service";
 import { createIoTAgent } from "../ai/aegent.ai";
 
 export class ChatController {
@@ -11,6 +11,7 @@ export class ChatController {
     try {
 
       const application = req.applicationId
+      console.log("this user is using the agentss to work ",application)
 
       if(!application){
         throw  new AppError("please login again!",StatusCodes.BAD_REQUEST)
@@ -33,8 +34,10 @@ export class ChatController {
         }]
       })
 
+      console.log(JSON.stringify(reply.messages, null, 2)); // 👈
+
       const response = reply.messages[reply.messages.length -1]
-      console.log("this is i need to know where how response is it",reply)
+    //  console.log("this is i need to know where how response is it",reply)
 
   
        
@@ -46,10 +49,10 @@ export class ChatController {
 
     } catch (err: any) {
       console.error(err);
-  console.error("Code:", err.code);
-  console.error("Message:", err.message);
-  console.error("Config:", err.config);
-  throw err;
+   return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: err.message || "Something went wrong"
+      });
     }
   }
 }
