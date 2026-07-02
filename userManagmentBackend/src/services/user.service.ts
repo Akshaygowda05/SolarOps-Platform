@@ -141,7 +141,7 @@ export class UserService {
     }
   }
 
-  static async deletUser(id: number): Promise<void> {
+  static async deletUser(id: number,adminUserID: number): Promise<void> {
     try {
       const user = await prisma.user.findUnique({
         where: { id: id }
@@ -150,7 +150,11 @@ export class UserService {
       if (!user) {
         throw new AppError('User not found', StatusCodes.NOT_FOUND);
       }
-      
+
+      if (user.id == adminUserID) {
+        throw new AppError('You are the owner of this user account.', StatusCodes.FORBIDDEN);
+      }
+
       await prisma.user.update({
         where: { id: id },
         data: { isActive: false }
@@ -391,11 +395,37 @@ static async updateUser(
     }
   }
 
-  static async deleteUserProfile(userId: number) {
+  static async deleteUserProfile(userId: number, adminUserID: number) {
     try {
-      await prisma.user.delete({
+
+      if (userId === adminUserID) {
+        throw new AppError('You cannot delete your own user profile.', StatusCodes.FORBIDDEN);  
+      }
+      const user = await prisma.user.findUnique({
         where: { id: userId }
       });
+
+      if (!user) {
+        throw new AppError('User not found', StatusCodes.NOT_FOUND);
+      }
+
+      if(user.role === Role.ADMIN) {
+        const adminCount = await prisma.user.count({
+          where: { role: Role.ADMIN, isActive: true }
+        })
+        if (adminCount <= 1) {
+          throw new AppError('At least one admin user must remain.', StatusCodes.FORBIDDEN);
+        }
+      }
+
+      try{
+        await prisma.user.delete({
+          where: { id: userId }
+        })
+      }catch(error){
+        loggers.error('Error deleting user profile:', error);
+        throw new AppError('Failed to delete user profile. Please try again later.', StatusCodes.INTERNAL_SERVER_ERROR);
+      }
     } catch (error) {
       loggers.error('Error deleting user profile:', error);
       throw error;

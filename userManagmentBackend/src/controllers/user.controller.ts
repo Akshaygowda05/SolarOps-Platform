@@ -28,8 +28,15 @@ export class UserController {
 
     static async deleteUser(req: Request, res: Response, next: NextFunction) {
         try {
+ 
+
+             const adminUserID = parseInt(req.userId as string, 10);
+            if (!adminUserID) {
+                throw new AppError('Admin user ID is required', StatusCodes.BAD_REQUEST);
+            }
             const userId = parseInt(req.params.id as string, 10);
-            await userService.deletUser(userId);
+
+            await userService.deletUser(userId,adminUserID );
             res.status(200).json({ message: 'User deleted successfully' });
         } catch (error) {
             next(error);// this will pass the error to the global error handler
@@ -37,8 +44,13 @@ export class UserController {
     }
     static async deleteUserProfile(req: Request, res: Response, next: NextFunction) {
         try {
+
+            const adminUserID = parseInt(req.userId as string, 10);
+            if (!adminUserID) {
+                throw new AppError('Admin user ID is required', StatusCodes.BAD_REQUEST);
+            }
             const userId = parseInt(req.params.id as string, 10);
-            await userService.deleteUserProfile(userId);
+            await userService.deleteUserProfile(userId, adminUserID);
             res.status(200).json({ message: 'User profile deleted successfully' });
         } catch (error) {
             next(error);// this will pass the error to the global error handler
