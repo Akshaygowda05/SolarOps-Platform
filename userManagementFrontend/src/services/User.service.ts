@@ -201,3 +201,8 @@ export const fetchSummary = async (startDate: string, endDate?: string) => {
         }
     });
 }
+
+
+export const chatbot = async (message: string) => {
+    return await api.post("/chat", { message });
+}

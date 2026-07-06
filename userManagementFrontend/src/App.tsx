@@ -21,6 +21,7 @@ import EditUser from "./pages/EditUser";
 import AdminPortal from "./pages/Tenants"; 
 import AdminApplicationGuard from "./components/AdminApplicationGuard";
 import './index.css'
+import Chatbot from "./pages/chatbot";
 // so ondu context create maditivi, admele adannu useContext hook use madi consume madtivi
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
@@ -77,6 +78,18 @@ const theme = useMemo(() => createTheme({
                   <AdminApplicationGuard >
                   <MainLayout>
                     <Dashboard />
+                  </MainLayout>
+                  </AdminApplicationGuard>
+                </ProtectedRoute>
+              } />
+
+               <Route
+              path="/chat"
+              element={
+                <ProtectedRoute allowedRoles={["USER","ADMIN"]}>
+                  <AdminApplicationGuard >
+                  <MainLayout>
+                    <Chatbot/>
                   </MainLayout>
                   </AdminApplicationGuard>
                 </ProtectedRoute>

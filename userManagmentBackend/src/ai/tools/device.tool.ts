@@ -6,6 +6,8 @@ export function serchDeviceDevEui(applicationId: string) {
     return tool(
         async ({ query }) => {
             try {
+
+                console.log(" 🦹🏻🦹🏻🦹🏻🦹🏻🦹🏻🦹🏻🦹🏻🦹🏻i need to check where am i current i need to know why i am not getting any response",query)
                 const response = await searchDevEui(applicationId, query);
 
                 
@@ -41,7 +43,21 @@ export function serchDeviceDevEui(applicationId: string) {
             }
         }, {
             name: "getdeviceDevEui",
-            description: "Find the unique devEui hardware ID using a device name or query. Essential before fetching battery info.",
+     description: `
+Use this tool whenever the user refers to a device by its name.
+
+Input:
+- Device name (for example: "Robot 1", "robot-20")
+
+Output:
+- The unique devEui for that device.
+
+This tool MUST be called before any tool that requires a devEui, such as:
+- getthebatteryVoltage
+- sendDownlinkToDevices
+
+Never guess or fabricate a devEui.
+`,
             schema: z.object({
                 query: z.string().describe("The name of the device (e.g., 'Robot 20')")
             })
@@ -89,16 +105,20 @@ export function getDevicebattery(applicationID: string) {
 export function sendCommandToDevice(applicationID: string) {
     return tool(
         async ({ devEui, data }) => {
+
+            console.log("🏹 🏹 🏹 inside sendCommandToDevice tool 🏹 🏹 🏹",{devEui, data,applicationID})
             try {
 
-                 const payloadMap: Record<string, string> = {
+        const payloadMap: Record<string, string> = {
           start: "Ag==",
           stop: "Aw==",
-          dock: "BA==",
-          return: "BQ==",
+          "return to dock": "BA==",
+          reboot: "BQ==",
         };
 
-        let devicepayload = payloadMap[data.toLowerCase()];
+
+       let cleanCommand = data.toLowerCase().trim();
+       let devicepayload = payloadMap[cleanCommand];
 
         if(!devicepayload){
             return JSON.stringify({
@@ -120,10 +140,24 @@ export function sendCommandToDevice(applicationID: string) {
             }
         }, {
             name: "sendDownlinkToDevices",
-            description: "send downlink to the devices for that we need devEui and data as paramters like start, stop and retrun to dock ",
+           description:
+`Send start, stop, reboot or return-to-dock commands.
+
+IMPORTANT:
+This tool ONLY accepts a real devEui.
+
+If the user provides a device name such as "robot-1" or "Robot 20",
+you MUST first call getdeviceDevEui to convert the device name into a devEui.
+Never pass the device name as the devEui.`,
             schema: z.object({
-                devEui: z.string().describe("The unique devEui hardware identifier."),
-                data: z.string().describe("The data to be sent to the device")
+                devEui: z.string().describe(`
+The 16-character LoRaWAN hardware identifier.
+
+Do NOT pass a device name such as "Robot 1" or "robot-1".
+
+If only the device name is available, call getdeviceDevEui first and use the returned devEui.
+`),
+                data: z.string().describe("The data to be sent to the device like start,stop ,return to dock or reboot ")
             })
         }
     );
