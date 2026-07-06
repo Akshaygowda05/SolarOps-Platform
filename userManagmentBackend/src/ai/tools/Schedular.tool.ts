@@ -1,7 +1,8 @@
 import { tool } from "langchain";
 import { z } from "zod";
 import { SchedulerServiceInstance } from "../../services/schedular.service";
-import { serachMulticastSerach } from "../../chripstackfunction/mulitcast.function";
+import { serachMulticastSerach } from "../../Aifunction/mulitcast.function";
+import { getScheduler } from "../../Aifunction/schedular.function";
 
 // 1. GET SCHEDULER TOOL (Looking Good!)
 export const getschedulartool = (applicationId: string) => {
@@ -9,7 +10,7 @@ export const getschedulartool = (applicationId: string) => {
     async () => {
       console.log("👉 INSIDE TOOL - Application ID:", applicationId);
       try {
-        const schedular = await SchedulerServiceInstance.getScheduler(applicationId);
+        const schedular = await getScheduler(applicationId);
         console.log("👉 SERVICE RESPONSE:", schedular);
         return JSON.stringify(schedular);
       } catch (error: any) {
@@ -30,9 +31,9 @@ export const getschedulartool = (applicationId: string) => {
 // 2. SEARCH MULTICAST GROUPS TOOL
 export function searchMulticastGroupsTool(applicationId: string) {
   return tool(
-    async ({ query }) => {
+    async ({  }) => {
       try {
-        const groups = await serachMulticastSerach(applicationId, query);
+        const groups = await serachMulticastSerach(applicationId);
 
         // service returns { success: false, message } on no matches
         if (!Array.isArray(groups) && groups?.success === false) {
@@ -56,9 +57,8 @@ export function searchMulticastGroupsTool(applicationId: string) {
     },
     {
       name: "searchMulticastGroups",
-      description: "Search multicast groups by name.",
+      description: "Search multicast groups by name and return their IDs",
       schema: z.object({
-        query: z.string().describe("Name of the multicast group to search for"),
       }),
     }
   );

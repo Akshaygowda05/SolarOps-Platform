@@ -17,7 +17,7 @@ export async function getmulticastgroups(applicationId:string,limit:Number) {
     }
 }
 
-export async function serachMulticastSerach(applicationId: string, query: string) {
+export async function serachMulticastSerach(applicationId: string) {
   try {
     const result = await apiClient.get('/api/multicast-groups', {
       params: {
@@ -28,21 +28,17 @@ export async function serachMulticastSerach(applicationId: string, query: string
 
     const groups = result.data?.result || [];
 
-    const matches = groups.filter((group: any) =>
-      group.name?.toLowerCase().includes(query.toLowerCase())
-    );
+   // hrere i need ot retrun all the repsone let llm devide it 
 
-    console.log("👉 MATCHES FOUND IN SERVICE:", matches);
+   const simplifiedGroups = groups.map((group: any) => ({
+  id: group.id,
+  name: group.name,
+}));
 
-    // ✅ Correct check: An empty array has a length of 0
-    if (matches.length === 0) {
-      return {
-        success: false,
-        message: `No multicast groups found matching the query "${query}". Please check the name.`
-      };
-    }
+console.log("this is somrthing i need to check on what kind of data i am getting ",simplifiedGroups)
 
-    return matches;
+return simplifiedGroups
+  
 
   } catch (error: any) {
     console.error("❌ CHIRPSTACK API ERROR:", error.response?.data || error.message);

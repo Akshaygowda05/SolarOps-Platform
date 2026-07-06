@@ -19,6 +19,8 @@ import { checkDatabase } from "./config/DatabaseHealth";
 import { ApplicationContext } from "./middlewares/applicationContext";
 const port = 3000;
 
+
+
 export const app = express();
 export const server = http.createServer(app);
  export const io = new Server(server,{

@@ -6,10 +6,13 @@ import loggers from "../config/logger";
 export async function processMqttData(topic: string, payload: any) {
     try {
         const devEui = payload?.deviceInfo?.devEui;
-    //   console.log(" ☠️Processing MQTT data for device:", payload?.object); 
+        //   console.log(" ☠️Processing MQTT data for device:", payload?.object); 
         const currentOdometer = Number(payload?.object?.CH10);
+        if (isNaN(currentOdometer)) {
+            throw new Error("Invalid odometer value");
+        }
 
-        let block = payload?.tags?.loc  || "unknown";
+        let block = payload?.tags?.loc || "unknown";
 
         if (!devEui) {
             throw new Error("devEui is missing in payload");
@@ -34,9 +37,9 @@ export async function processMqttData(topic: string, payload: any) {
                 ? Number(previousData.rawOdometerValue)
                 : undefined;
 
-  // console.log("📊 idu ale robot battery test madana:", previousOdometerValue);
+        // console.log("📊 idu ale robot battery test madana:", previousOdometerValue);
 
-       
+
 
         const validationResult =
             ValidateOdometerValue.processOdometerValue(
@@ -46,11 +49,11 @@ export async function processMqttData(topic: string, payload: any) {
 
         switch (validationResult.type) {
             case "IGNORE":
-              // loggers.info(`Ignored duplicate/invalid data for ${devEui}`);
+                // loggers.info(`Ignored duplicate/invalid data for ${devEui}`);
                 return;
 
             case "FIRST_ENTRY":
-              loggers.info(`First entry for device ${devEui}`);
+                loggers.info(`First entry for device ${devEui}`);
                 return await RobotRepository.createNewData(payload, block);
 
             case "RESET":
@@ -86,6 +89,6 @@ export async function processMqttData(topic: string, payload: any) {
             payload,
         });
 
-        throw error; 
+        throw error;
     }
 }

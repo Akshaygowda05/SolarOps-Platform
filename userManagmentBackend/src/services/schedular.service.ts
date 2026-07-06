@@ -18,6 +18,8 @@ type CreateSchedulerDTO = {
 class SchedulerService {
 
   async createScheduler(applicationId: string, dto: CreateSchedulerDTO) {
+
+    console.log("i am here this data cames by llm ")
     if (!dto.groups || !Array.isArray(dto.groups) || dto.groups.length === 0) {
       throw new AppError("At least one group is required", StatusCodes.BAD_REQUEST);
     }
@@ -54,6 +56,8 @@ class SchedulerService {
       },
     });
 
+    console.log("this i am trying to log the thing which is coming from llm",result)
+
     // If queue insertion fails, roll back the DB record
     try {
       if (result.jobType === JobType.ONE_TIME) {
@@ -75,7 +79,15 @@ class SchedulerService {
   async getScheduler(applicationId: string) {
     const result = await prisma.chirpstackApplication.findUnique({
       where: { chirpstackId: applicationId },
-      include: { SchedularData: true },
+      include: { SchedularData:{
+        select:{
+          groupName:true,
+          jobType:true,
+          data:true,
+          time:true
+          
+        }
+      } },
     });
 
     if (!result) {
