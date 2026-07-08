@@ -40,7 +40,7 @@ model RobotData {
 }
 
 
-model Runningata{
+model RunningData {
   id Int @id @default(autoincrement())
   applicationId String
   tenantId String
@@ -78,10 +78,10 @@ model ChirpstackApplication {
 
   tenantId       Int
   tenant         ChirpstackTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
   users          User[]
   siteConfiguration SiteConfiguration?
   SchedularData  SchedularData[]   
+  status  Status@default(NONE) // this is to check what is what status of that site
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -160,6 +160,12 @@ enum Blocktriggering {
 enum JobType {
   DAILY
   ONE_TIME
+}
+
+enum Status{
+  PENDING
+  ACTIVE
+  NONE
 }
 
 
