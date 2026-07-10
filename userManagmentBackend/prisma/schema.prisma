@@ -146,6 +146,29 @@ model  activeDeviceCount {
 }
 
 
+model DeviceState {
+  id            Int      @id @default(autoincrement())
+  deviceId      String   @unique
+
+  deviceName    String
+  applicationId String
+  tenantId      String
+
+  isOnline      Boolean  @default(false)
+  lastSeen      DateTime?
+
+  batteryVoltage String?
+  error          String?
+
+  odometer      BigInt @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([applicationId])
+  @@index([tenantId])
+}
+
 enum Role {
   ADMIN
   USER

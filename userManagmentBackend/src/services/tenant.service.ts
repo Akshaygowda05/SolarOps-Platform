@@ -1,39 +1,32 @@
 import AppError from "../utils/AppError";
 import { StatusCodes } from "http-status-codes";
 import apiClient from "../config/apiclient";
+import { prisma } from "../config/primsaConfig";
 
 class TenantServices {
     
   async getTenants() {
 
-    try {
-      const result = [];
-      const limit = 50;
-      let offset = 0;
-
-      while (true) {
-        const response = await apiClient.get("/api/tenants", {
-          params: {
-            limit,
-            offset,
-          },
-        });
-
-        const tenants = response?.data?.result || [];
-
-        if (tenants.length === 0) {
-          break;
-        }
-        result.push(...tenants);
-
-        if (tenants.length < limit) {
-          break;
-        }
-        offset += limit;
+   try{
+    const tenant = await prisma.chirpstackTenant.findMany({
+      include:{
+     _count:{
+      select:{ 
+      applications:true
       }
+     }
+      }
+    });
+    const lenght =  tenant.length
+    
+    return {
+      success:true,
+      totalTenant:lenght,
+      data:tenant
+    }
 
-      return result;
-    } catch (error) {
+
+   }catch (error) {
       throw new AppError(
         "Failed to get tenants",
         StatusCodes.INTERNAL_SERVER_ERROR

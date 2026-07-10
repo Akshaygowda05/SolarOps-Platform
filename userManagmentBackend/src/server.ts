@@ -17,6 +17,7 @@ import { jobSchedulerService } from "./queues/scheduler.jobs";
 import "./worker/scheduler.worker";
 import { checkDatabase } from "./config/DatabaseHealth";
 import { ApplicationContext } from "./middlewares/applicationContext";
+import { deviceClient } from "./grpc/chirpstack.client";
 const port = 3000;
 
 export const app = express();
@@ -36,6 +37,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 console.log("Starting server...");
+
+await deviceClient.list()
 
 io.on("connection", (socket: any) => {
   try {
