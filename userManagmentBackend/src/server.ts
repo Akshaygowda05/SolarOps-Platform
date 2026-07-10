@@ -1,4 +1,4 @@
-import express,{Request,Response,NextFunction} from "express";
+import express,{Request,Response,NextFunction, response} from "express";
  
 import http from 'http';
 import { Server } from "socket.io";
@@ -17,8 +17,12 @@ import { jobSchedulerService } from "./queues/scheduler.jobs";
 import "./worker/scheduler.worker";
 import { checkDatabase } from "./config/DatabaseHealth";
 import { ApplicationContext } from "./middlewares/applicationContext";
-import { deviceClient } from "./grpc/chirpstack.client";
+import { listTenants } from "./services/tenantGrc.service";
+import { deviceSync } from "./services/deviceSync.service";
+
+
 const port = 3000;
+
 
 export const app = express();
 export const server = http.createServer(app);
@@ -38,7 +42,8 @@ app.use(express.urlencoded({ extended: true }));
 
 console.log("Starting server...");
 
-await deviceClient.list()
+
+deviceSync()
 
 io.on("connection", (socket: any) => {
   try {

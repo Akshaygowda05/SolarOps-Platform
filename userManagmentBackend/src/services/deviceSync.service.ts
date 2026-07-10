@@ -1,67 +1,27 @@
-import {
-    deviceClient
-} from "../grpc/chirpstack.client";
+import { getApplicationByGrpc } from "./getApplicatonGrpc.services";
+import { getDevicesGrpc } from "./getDevicesGrpc.service";
+import { listTenants } from "./tenantGrc.service";
 
+export async function  deviceSync(){
+    const tenants = await listTenants();
 
-import {
-    getGrpcMetadata
-} from "../grpc/metadata";
+for (const tenant of tenants.resultList) {
 
+    const applications = await getApplicationByGrpc(tenant.id);
 
-import {
-    ListDevicesRequest
-} from "@chirpstack/chirpstack-api/api/device_pb";
+    for (const app of applications.resultList) {
 
+        const devices = await getDevicesGrpc(
+            app.id,
+            "100",
+            "0"
+        );
 
+        for (const device of devices.resultList) {
 
-export async function testGrpc(
-    applicationId:string
-){
+            console.log(device.name);
 
-    const request =
-       new ListDevicesRequest();
-
-
-    request.setApplicationId(
-        applicationId
-    );
-
-
-    request.setLimit(10);
-
-
-
-    const response =
-      await new Promise<any>(
-        (resolve,reject)=>{
-
-
-        deviceClient.list(
-            request,
-            getGrpcMetadata(),
-
-            (error,result)=>{
-
-
-                if(error){
-                    reject(error);
-                    return;
-                }
-
-
-                resolve(result);
-
-            }
-        )
-
-
-      });
-
-
-
-console.log(
- response.toObject()
-);
-
-
+        }
+    }
+}
 }

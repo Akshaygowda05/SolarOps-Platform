@@ -8,7 +8,7 @@ export function getGrpcMetadata(){
 
     metadata.set(
         "authorization",
-        `Bearer ${envconfig.getChirpstackKey}`
+        `Bearer ${envconfig.getChirpstackKey()}`
     );
 
     return metadata;
