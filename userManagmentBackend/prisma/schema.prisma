@@ -63,14 +63,21 @@ model DeviceState {
 }
 
 
+// model DashboardSnapshot {
+//   id Int @id @default(autoincrement())
+
+//   TotalOnlineCount Int
+
+// }
+
 model GatewayState {
   id Int @id @default(autoincrement())
-    gatewayId  String
-    gatewayName String
+    gatewayId  String?
+    gatewayName String?
    latitude Float?
    longitude Float?
     isOnline Boolean
-    lastSeen DateTime
+    lastSeen DateTime?
 }
 
 
@@ -172,6 +179,7 @@ model SchedularData{
   updatedAt     DateTime @updatedAt  // once it is updated to the 
 }
 
+
 model  activeDeviceCount {
   id Int @id @default(autoincrement())
   applicationId String
@@ -201,7 +209,7 @@ enum JobType {
   ONE_TIME
 }
 
-enum Status{
+enum Status {
   PENDING
   ACTIVE
   NONE

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "GatewayState" ALTER COLUMN "gatewayId" DROP NOT NULL,
+ALTER COLUMN "gatewayName" DROP NOT NULL,
+ALTER COLUMN "lastSeen" DROP NOT NULL;
