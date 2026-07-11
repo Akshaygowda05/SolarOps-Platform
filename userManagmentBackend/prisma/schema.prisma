@@ -29,6 +29,8 @@ model RobotData {
   batteryVoltage         Float
   applicationId          String
   tenantId               String
+  error                  String?
+
   
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
@@ -37,6 +39,38 @@ model RobotData {
   @@index([createdAt, deviceId])
   @@index([applicationId])
   @@index([tenantId])
+}
+
+model DeviceState {
+  id            Int      @id @default(autoincrement())
+  deviceId      String   @unique
+
+  deviceName    String
+  applicationId String
+  tenantId      String
+
+  gatewayId String?
+
+  isOnline      Boolean  @default(false)
+  lastSeen      DateTime?
+
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([applicationId])
+  @@index([tenantId])
+}
+
+
+model GatewayState {
+  id Int @id @default(autoincrement())
+    gatewayId  String
+    gatewayName String
+   latitude Float?
+   longitude Float?
+    isOnline Boolean
+    lastSeen DateTime
 }
 
 
@@ -53,6 +87,8 @@ model RunningData {
   updatedAt DateTime @updatedAt
 
 }
+
+
 
 
 model User{
@@ -73,6 +109,8 @@ model User{
 model ChirpstackApplication {
   id             Int     @id @default(autoincrement())
   chirpstackId   String  @unique   // ChirpStack application ID
+
+  TotalDeviceCount  Int? // for safety purpose
   name           String
   description    String?
 
@@ -146,28 +184,6 @@ model  activeDeviceCount {
 }
 
 
-model DeviceState {
-  id            Int      @id @default(autoincrement())
-  deviceId      String   @unique
-
-  deviceName    String
-  applicationId String
-  tenantId      String
-
-  isOnline      Boolean  @default(false)
-  lastSeen      DateTime?
-
-  batteryVoltage String?
-  error          String?
-
-  odometer      BigInt @default(0)
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@index([applicationId])
-  @@index([tenantId])
-}
 
 enum Role {
   ADMIN

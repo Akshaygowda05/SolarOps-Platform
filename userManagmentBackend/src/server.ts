@@ -18,7 +18,8 @@ import "./worker/scheduler.worker";
 import { checkDatabase } from "./config/DatabaseHealth";
 import { ApplicationContext } from "./middlewares/applicationContext";
 import { listTenants } from "./services/tenantGrc.service";
-import { deviceSync } from "./services/deviceSync.service";
+import { syncAllTenant } from "./services/syncTenant.services";
+
 
 
 const port = 3000;
@@ -43,7 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 console.log("Starting server...");
 
 
-deviceSync()
+syncAllTenant()
 
 io.on("connection", (socket: any) => {
   try {

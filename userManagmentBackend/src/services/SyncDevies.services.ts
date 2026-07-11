@@ -1,12 +1,35 @@
-import { application } from "express"
+
+import { prisma } from "../config/primsaConfig";
 import { getDevicesGrpc } from "./getDevicesGrpc.service"
 
-const syncAlldevices = async (Application:String) => {
+export const syncAlldevices = async (Application:string) => {
 
-    const devices = await getDevicesGrpc(
-        application,
-        "100",
-        "0"
+    let offset = 0;
+    let limit = 100;
+
+    while(true){
+        const devices = await getDevicesGrpc(
+        Application,
+        limit,
+        offset
     )
+
+    for(const device of devices.resultList){
+  
+        
+    }
+
+
+    if(devices.totalCount < offset){
+        break
+    }
+
+
+    offset +=limit
+
+   
+
+
+    }
     
 }
