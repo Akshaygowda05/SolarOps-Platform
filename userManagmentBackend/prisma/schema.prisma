@@ -72,7 +72,7 @@ model DeviceState {
 
 model GatewayState {
   id Int @id @default(autoincrement())
-    gatewayId  String?
+    gatewayId  String @unique
     gatewayName String?
    latitude Float?
    longitude Float?

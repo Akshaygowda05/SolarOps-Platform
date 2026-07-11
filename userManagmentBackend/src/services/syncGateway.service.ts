@@ -23,7 +23,7 @@ export const syncAllGateway = async (tenantId: string) => {
 
         await prisma.gatewayState.upsert({
             where: {
-                gatewayId: gateway.gatewayId,
+                gatewayId:String(gateway.gatewayId),
             },
             update: gatewayData,
             create: gatewayData,
