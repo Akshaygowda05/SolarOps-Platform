@@ -28,6 +28,7 @@ model RobotData {
   batteryDischargeCycle  Float
   batteryVoltage         Float
   applicationId          String
+  application  ChirpstackApplication@relation(fields: [applicationId], references: [chirpstackId])
   tenantId               String
   error                  String?
 
@@ -47,6 +48,7 @@ model DeviceState {
 
   deviceName    String
   applicationId String
+  application   ChirpstackApplication @relation(fields: [applicationId], references: [chirpstackId])
   tenantId      String
 
   gatewayId String?
@@ -120,6 +122,9 @@ model ChirpstackApplication {
   TotalDeviceCount  Int? // for safety purpose
   name           String
   description    String?
+
+  robotData     RobotData[]
+  devicesState  DeviceState[]
 
   tenantId       Int
   tenant         ChirpstackTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
