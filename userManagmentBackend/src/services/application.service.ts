@@ -36,7 +36,7 @@ export async function getApplicationService(tenantID: string) {
 }
 
 
-export async function editApplicationStatus(
+export async function editStatusOfApplicationService(
   applicationId: string,
   status: Status
 ) {

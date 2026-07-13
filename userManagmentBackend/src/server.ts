@@ -44,7 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 console.log("Starting server...");
 
 
-syncAllTenant()
+// syncAllTenant()
 
 io.on("connection", (socket: any) => {
   try {

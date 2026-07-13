@@ -1,7 +1,8 @@
 import AppError from '../utils/AppError';
 import  { StatusCodes } from 'http-status-codes';
 import { Request, Response,NextFunction } from 'express';
-import { getApplicationService } from '../services/application.service';
+import { editStatusOfApplicationService, getApplicationService } from '../services/application.service';
+import { Status } from '@prisma/client';
 
 
 async function getApplicationController(req: Request, res: Response, next: NextFunction) {
@@ -24,7 +25,27 @@ async function getApplicationController(req: Request, res: Response, next: NextF
     }
 
 
+export async function editstatusOfApplicationController(req: Request, res: Response, next: NextFunction) {
+    try{
+        const applicationId = req.query.id as string;
+        const status = req.query.status as Status;
+
+        if(!applicationId || !status) {
+            throw new AppError(
+                "applicationId and status are required",
+                StatusCodes.BAD_REQUEST
+            );
+        }
+
+        const result = await editStatusOfApplicationService(applicationId, status);
+        res.status(StatusCodes.OK).json(result);
+    }catch (error) {
+        next(error);
+    }
+}
+
 export default {
-    getApplicationController
+    getApplicationController,
+    
 }
 

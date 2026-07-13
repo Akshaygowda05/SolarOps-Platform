@@ -8,11 +8,8 @@ export async function syncAllTenant() {
     const tenants = await listTenants();
 
     for (const tenant of tenants.resultList){
-        console.log(tenant.id)
-    //    await getApplicationId(tenant.id)
-
-
- await syncAllGateway(tenant.id)
+        await syncAllGateway(tenant.id)
     }
     
 }
+
