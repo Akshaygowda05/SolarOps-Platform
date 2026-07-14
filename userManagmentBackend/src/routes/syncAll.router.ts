@@ -10,14 +10,14 @@ const syncallRouter = express.Router();
 
 
 const syncLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 1, // Only 1 request per IP per hour
+  windowMs: 60 * 60 * 1000,
+  max: 1, 
   message: "Sync already triggered. Try again later.",
 });
 
 
 
-syncallRouter.get('/syncAll', syncLimiter,authenticate,ApplicationContext,async (req, res) => {
+syncallRouter.get('/syncAll',async (req, res) => {
     try{
 
         await syncAllTenant();
@@ -31,3 +31,5 @@ syncallRouter.get('/syncAll', syncLimiter,authenticate,ApplicationContext,async 
     }
 
 })
+
+export default syncallRouter;

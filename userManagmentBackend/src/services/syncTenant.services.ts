@@ -7,9 +7,18 @@ export async function syncAllTenant() {
 
     const tenants = await listTenants();
 
-    for (const tenant of tenants.resultList){
-        await syncAllGateway(tenant.id)
-    }
-    
+    await Promise.all(
+        tenants.resultList.map(async (tenant) => {
+            try {
+                await getApplicationId(tenant.id);
+                await syncAllGateway(tenant.id);
+            } catch(error) {
+                console.error(
+                    `Error occurred while syncing tenant ${tenant.id}:`,
+                    error
+                );
+            }
+        })
+    );
 }
 
