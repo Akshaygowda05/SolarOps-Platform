@@ -7,13 +7,17 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Grid,
   Stack,
   Breadcrumbs,
   Link,
   IconButton,
-  Chip,
+  Select,
+  MenuItem,
+  FormControl,
+ 
 } from "@mui/material";
+
+import type { SelectChangeEvent } from '@mui/material';
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AppsOutlinedIcon from "@mui/icons-material/AppsOutlined";
@@ -78,6 +82,34 @@ export default function ApplicationPage() {
     }, 1200);
   };
 
+  const handleStatusChange = async (e: SelectChangeEvent<string>, app: Application) => {
+    e.stopPropagation(); // Stop navigation click
+    const newStatus = e.target.value;
+
+    try {
+      setError("");
+      // Optimistic update
+      setApplications((prev) =>
+        prev.map((a) => (a.id === app.id ? { ...a, status: newStatus } : a))
+      );
+
+      // Hit your status change endpoint
+
+     // console.log("this is to check the id of the application",app.id)
+   const resposne =    await api.put(`/admin/application/${app.id}/status`, {
+        status: newStatus,
+      });
+
+      console.log("this is to check what is happening the response",resposne)
+
+
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to update application status");
+      // Revert if API fails
+      fetchApplications();
+    }
+  };
+
   const formatDate = (iso: string) => {
     if (!iso) return "—";
     return new Date(iso).toLocaleDateString("en-IN", {
@@ -87,14 +119,12 @@ export default function ApplicationPage() {
     });
   };
 
-  // Maps whatever the API sends as `status` to a badge color.
-  // Extend this if new status strings show up from the backend.
   const statusStyle = (status: string) => {
     const s = (status || "").toUpperCase();
     if (s === "ACTIVE") return { color: GREEN, bg: `${GREEN}18` };
     if (s === "PENDING" || s === "PENDING_REVIEW") return { color: ORANGE, bg: `${ORANGE}1f` };
     if (s === "FAILED" || s === "ERROR") return { color: "#D64545", bg: "#D6454518" };
-    return { color: "text.secondary", bg: "action.hover" };
+    return { color: "#666666", bg: "#f0f0f0" };
   };
 
   const stats = useMemo(() => {
@@ -282,20 +312,33 @@ export default function ApplicationPage() {
                   </Typography>
                 </Stack>
 
-                {app.status && app.status !== "NONE" && (
-                  <Chip
-                    label={app.status.replace(/_/g, " ")}
-                    size="small"
+                <FormControl size="small" onClick={(e) => e.stopPropagation()}>
+                  <Select
+                    value={app.status || "NONE"}
+                    onChange={(e) => handleStatusChange(e, app)}
                     sx={{
                       fontWeight: 700,
                       fontSize: 11,
-                      textTransform: "capitalize",
-                      color,
+                      textTransform: "uppercase",
+                      color: color,
                       backgroundColor: bg,
-                      height: 24,
+                      height: 26,
+                      borderRadius: 4,
+                      "& .MuiSelect-select": {
+                        py: 0.5,
+                        px: 1.5,
+                        pr: "24px !important",
+                      },
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        border: "none",
+                      },
                     }}
-                  />
-                )}
+                  >
+                    <MenuItem value="PENDING" sx={{ fontSize: 12, fontWeight: 600 }}>PENDING</MenuItem>
+                    <MenuItem value="ACTIVE" sx={{ fontSize: 12, fontWeight: 600 }}>ACTIVE</MenuItem>
+                    <MenuItem value="NONE" sx={{ fontSize: 12, fontWeight: 600 }}>NONE</MenuItem>
+                  </Select>
+                </FormControl>
 
                 <IconButton
                   size="small"

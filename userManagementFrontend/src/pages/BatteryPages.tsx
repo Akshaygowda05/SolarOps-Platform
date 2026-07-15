@@ -142,7 +142,7 @@ useEffect(() => {
                   variant="outlined" 
                   sx={{ 
                     p: 2, 
-                    borderRadius: 2, 
+                    borderRadius: 1, 
                     bgcolor: "background.paper", 
                     borderColor: "divider",
                     transition: 'transform 0.2s',

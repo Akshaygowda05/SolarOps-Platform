@@ -17,9 +17,9 @@ import { jobSchedulerService } from "./queues/scheduler.jobs";
 import "./worker/scheduler.worker";
 import { checkDatabase } from "./config/DatabaseHealth";
 import { ApplicationContext } from "./middlewares/applicationContext";
+import cron from 'node-cron';
+import { syncAllGateway } from "./services/syncGateway.service";
 import { listTenants } from "./services/tenantGrc.service";
-import { syncAllTenant } from "./services/syncTenant.services";
-
 
 
 const port = 3000;
@@ -43,8 +43,6 @@ app.use(express.urlencoded({ extended: true }));
 
 console.log("Starting server...");
 
-
-// syncAllTenant()
 
 io.on("connection", (socket: any) => {
   try {
@@ -115,7 +113,34 @@ async function startServer() {
     res.json(events);
   });
 
+  cron.schedule('*/45 * * * *', async () => {
+loggers.info('Running scheduled job to check gateway  health...');
+
+try {
+
+  const tenants = await listTenants();
+ await Promise.all(
+        tenants.resultList.map(async (tenant:any) => {
+            try {
+                 await syncAllGateway(tenant.id);
+             
+            } catch(error) {
+                console.error(
+                    `Error occurred while syncing tenant ${tenant.id}:`,
+                    error
+                );
+            }
+        })
+    );
+} catch (error) {
+  loggers.error("Error occurred while syncing gateways:", error);
+}
+  })
+
   app.use(globalErrorHandler);
+
+
+
 
   server.listen(port, "0.0.0.0", () => {
     loggers.info(`Server is running on port ${port}`);

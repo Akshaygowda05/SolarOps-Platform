@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { ChangeEvent } from "react";
 import { 
   Box, Typography, Button, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, Paper, Chip, 
   IconButton, Tooltip, Dialog, DialogActions, DialogContent, 
   DialogContentText, DialogTitle, TablePagination, Avatar,
-  useTheme, alpha // ADDED: useTheme for dynamic colors
+  useTheme, alpha
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
@@ -30,7 +30,7 @@ interface User {
 }
 
 function Users() {
-  const theme = useTheme(); // CHANGED: Added to access current theme (Light/Dark)
+  const theme = useTheme();
   const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -38,7 +38,10 @@ function Users() {
   const [limit, setLimit] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
-  const fetchUsers = async () => {
+  // 1. TODO: Replace this with your actual auth context/state (e.g., const { user } = useAuth();)
+  const currentUserId = 1; 
+
+  const fetchUsers = useCallback(async () => {
     try {
       const res = await api.get("/v1/users", {
         params: { page: page + 1, limit: limit }
@@ -52,13 +55,14 @@ function Users() {
     } catch (error) {
       console.error("Failed to fetch users", error);
     }
-  };
+  }, [page, limit]);
 
   useEffect(() => {
     fetchUsers();
-  }, [page, limit]);
+  }, [fetchUsers]);
 
   const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
+  
   const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
     setLimit(parseInt(event.target.value, 10));
     setPage(0);
@@ -77,7 +81,6 @@ function Users() {
   };
 
   return (
-    // CHANGED: bgcolor changed to background.default for Dark Mode support
     <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "background.default", minHeight: "100vh" }}>
       
       {/* --- HEADER --- */}
@@ -86,7 +89,7 @@ function Users() {
           <Typography variant="h5" sx={{ fontWeight: 800, color: "text.primary", letterSpacing: '-0.5px' }}>
             User Management
           </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}> {/* CHANGED: color to text.secondary */}
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
             Manage permissions and account status for your team.
           </Typography>
         </Box>
@@ -99,7 +102,7 @@ function Users() {
             textTransform: "none", 
             fontWeight: 600, 
             px: 3, 
-            boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 4px 14px 0 rgba(0,118,255,0.39)' // CHANGED: Remove shadow in dark mode
+            boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 4px 14px 0 rgba(0,118,255,0.39)'
           }}
         >
           Create User
@@ -107,17 +110,18 @@ function Users() {
       </Box>
 
       {/* --- TABLE --- */}
-      {/* CHANGED: bgcolor set to background.paper and shadow adjusted for dark mode */}
-      <TableContainer component={Paper} sx={{ 
+      <TableContainer 
+        component={Paper} 
+        sx={{ 
           borderRadius: 4, 
           overflow: 'hidden', 
           border: "1px solid", 
-          borderColor: "divider", // CHANGED: Hard color to divider token
+          borderColor: "divider",
           boxShadow: theme.palette.mode === 'dark' ? "none" : "0 10px 30px rgba(0,0,0,0.03)", 
           bgcolor: "background.paper" 
-        }}>
+        }}
+      >
         <Table sx={{ minWidth: 700 }}>
-          {/* CHANGED: bgcolor changed from grey.50 to action.hover for dark mode compatibility */}
           <TableHead sx={{ bgcolor: "action.hover" }}> 
             <TableRow>
               <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>IDENTIFIED USER</TableCell>
@@ -132,13 +136,14 @@ function Users() {
           <TableBody>
             {users.map((user) => {
               const isAdmin = user.role.toUpperCase() === "ADMIN";
+              // 2. Determine if this user row is the logged-in user
+              const isMe = user.id === currentUserId; 
 
               return (
                 <TableRow 
                   key={user.id} 
                   hover 
                   sx={{ 
-                    // CHANGED: uses theme palette alpha for Admin highlight instead of hardcoded RGBA
                     bgcolor: isAdmin ? alpha(theme.palette.primary.main, 0.05) : "inherit" 
                   }}
                 >
@@ -148,21 +153,20 @@ function Users() {
                         sx={{ 
                           width: 32, 
                           height: 32, 
-                          // CHANGED: grey.200 changed to action.selected for dark mode
                           bgcolor: isAdmin ? "primary.main" : "action.selected", 
-                          color: isAdmin ? "white" : "text.secondary" // CHANGED: grey.600 to text.secondary
+                          color: isAdmin ? "primary.contrastText" : "text.secondary"
                         }}
                       >
                         {isAdmin ? <AdminPanelSettingsIcon sx={{ fontSize: 18 }} /> : <PersonOutlinedIcon sx={{ fontSize: 18 }} />}
                       </Avatar>
                       <Box>
                         <Typography variant="body2" sx={{ fontWeight: isAdmin ? 700 : 500, color: isAdmin ? "primary.main" : "text.primary" }}>
-                          {user.name}
+                          {user.name} {isMe && "(You)"}
                         </Typography>
                         {isAdmin && (
-                            <Typography sx={{ fontSize: '10px', fontWeight: 800, color: 'primary.main', opacity: 0.8 }}>
-                                SYSTEM PRIVILEGED
-                            </Typography>
+                          <Typography sx={{ fontSize: '10px', fontWeight: 800, color: 'primary.main', opacity: 0.8 }}>
+                            SYSTEM PRIVILEGED
+                          </Typography>
                         )}
                       </Box>
                     </Box>
@@ -180,10 +184,8 @@ function Users() {
                         fontWeight: 800, 
                         fontSize: "0.65rem",
                         borderRadius: '6px',
-                        // CHANGED: borderColor set to divider for dark mode
                         borderColor: "divider",
-                        // CHANGED: color adjustment for non-admin roles
-                        color: isAdmin ? "white" : "text.secondary"
+                        color: isAdmin ? "primary.contrastText" : "text.secondary"
                       }} 
                     />
                   </TableCell>
@@ -192,7 +194,6 @@ function Users() {
 
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {/* CHANGED: bgcolor success.main and text.disabled for dynamic themes */}
                       <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: user.isActive ? "success.main" : "text.disabled" }} />
                       <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: user.isActive ? "success.main" : "text.secondary" }}>
                         {user.isActive ? "Active" : "Inactive"}
@@ -206,10 +207,22 @@ function Users() {
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Delete Account">
-                      <IconButton size="small" onClick={() => setDeleteId(user.id)} sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                    
+                    {/* 3. Conditional tooltips and disabled logic based on self-deletion rules */}
+                    <Tooltip title={isMe ? "You cannot delete your own account" : "Delete Account"}>
+                      <span>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => setDeleteId(user.id)} 
+                          disabled={isMe}
+                          sx={{ 
+                            color: "text.secondary", 
+                            "&:hover": { color: isMe ? "inherit" : "error.main" } 
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </span>
                     </Tooltip>
                   </TableCell>
                 </TableRow>
@@ -226,16 +239,24 @@ function Users() {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{ borderTop: '1px solid', borderColor: 'divider', color: 'text.primary' }} // CHANGED: borderColor and color
+          sx={{ borderTop: '1px solid', borderColor: 'divider', color: 'text.primary' }}
         />
       </TableContainer>
 
       {/* --- DELETE DIALOG --- */}
-      {/* CHANGED: PaperProps updated to use background.paper and text.primary for Dark Mode */}
       <Dialog 
         open={Boolean(deleteId)} 
         onClose={() => setDeleteId(null)} 
-        slotProps={{ sx: { borderRadius: 3, p: 1, bgcolor: "background.paper", backgroundImage: 'none' } } as any}
+        slotProps={{
+          paper: {
+          sx: { 
+            borderRadius: 3, 
+            p: 1, 
+            bgcolor: "background.paper", 
+            backgroundImage: 'none'
+          }
+        }
+        }}
       >
         <DialogTitle sx={{ fontWeight: 800, color: "text.primary" }}>Confirm Deletion</DialogTitle>
         <DialogContent>

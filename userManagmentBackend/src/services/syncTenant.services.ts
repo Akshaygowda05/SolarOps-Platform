@@ -11,7 +11,7 @@ export async function syncAllTenant() {
         tenants.resultList.map(async (tenant) => {
             try {
                 await getApplicationId(tenant.id);
-                await syncAllGateway(tenant.id);
+             
             } catch(error) {
                 console.error(
                     `Error occurred while syncing tenant ${tenant.id}:`,

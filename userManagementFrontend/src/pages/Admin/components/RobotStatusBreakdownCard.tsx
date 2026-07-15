@@ -4,10 +4,11 @@ import {
   Typography, 
   Box, 
   CircularProgress, 
-  Grid2 as Grid, // Using modern MUI Grid2 syntax
+  Grid,
   useTheme 
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+
 
 interface CountData {
   totalDevices: number;

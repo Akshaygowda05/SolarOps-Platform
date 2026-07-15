@@ -6,7 +6,7 @@ import {
   CircularProgress, 
   useTheme 
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import  Grid  from "@mui/material/Grid";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import EnergySavingsLeafOutlinedIcon from "@mui/icons-material/EnergySavingsLeafOutlined";
 

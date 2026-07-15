@@ -44,12 +44,15 @@ export async function editStatusOfApplicationService(
     const updatedApplication =
       await prisma.chirpstackApplication.update({
         where: {
-          chirpstackId: applicationId,
+          id: parseInt(applicationId),
         },
         data: {
           status,
         },
       });
+
+
+      
 
     return {
       success: true,
