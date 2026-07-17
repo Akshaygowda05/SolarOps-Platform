@@ -1,37 +1,74 @@
 import { Router } from "express";
 import { DashboardController } from "../controllers/admin.controller";
 
-
 const adminRouter = Router();
 
+// ======================================================
+// Dashboard (All Applications)
+// ======================================================
 
+// Device Counts
 adminRouter.get(
-  "/counts",
-  DashboardController.getDashboardCounts
+  "/dashboard/device-counts",
+  DashboardController.getDashboardDeviceCounts
 );
 
-// Last 5 days panels cleaned history
+// Last 5 Days Panels Cleaned
 adminRouter.get(
-  "/history-panels-cleaned",
-  DashboardController.getHistoryPanelsCleaned
+  "/dashboard/panels/daily",
+  DashboardController.getDashboardDailyPanelsCleaned
 );
 
-// Today's panels cleaned
+// Today's Panels Cleaned
 adminRouter.get(
-  "/today-panels-cleaned",
-  DashboardController.getTodayPanelsCleaned
+  "/dashboard/panels/today",
+  DashboardController.getDashboardTodayPanelsCleaned
 );
 
-// Gateway data
+// Monthly Panels Cleaned
 adminRouter.get(
-  "/gateway-data",
-  DashboardController.getGatewayData
+  "/dashboard/panels/monthly",
+  DashboardController.getDashboardMonthlyPanelsCleaned
 );
 
-// Active/Pending Chirpstack applications
+// Gateway States
 adminRouter.get(
-  "/active/applications",
-  DashboardController.getTrueApplication
+  "/dashboard/gateways",
+  DashboardController.getGatewayStates
+);
+
+// Active & Pending Applications
+adminRouter.get(
+  "/dashboard/applications",
+  DashboardController.getActiveApplications
+);
+
+// ======================================================
+// Application Specific
+// ======================================================
+
+// Device Counts
+adminRouter.get(
+  "/applications/:applicationId/device-counts",
+  DashboardController.getApplicationDeviceCounts
+);
+
+// Last 5 Days Panels Cleaned
+adminRouter.get(
+  "/applications/:applicationId/panels/daily",
+  DashboardController.getApplicationDailyPanelsCleaned
+);
+
+// Today's Panels Cleaned
+adminRouter.get(
+  "/applications/:applicationId/panels/today",
+  DashboardController.getApplicationTodayPanelsCleaned
+);
+
+// Monthly Panels Cleaned
+adminRouter.get(
+  "/applications/:applicationId/panels/monthly",
+  DashboardController.getApplicationMonthlyPanelsCleaned
 );
 
 export default adminRouter;

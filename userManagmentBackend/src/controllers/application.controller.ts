@@ -1,7 +1,7 @@
 import AppError from '../utils/AppError';
 import  { StatusCodes } from 'http-status-codes';
 import { Request, Response,NextFunction } from 'express';
-import { editStatusOfApplicationService, getApplicationService } from '../services/application.service';
+import { editStatusOfApplicationService, getAcitveApplicationsService, getApplicationService } from '../services/application.service';
 import { Status } from '@prisma/client';
 import { syncAllTenant } from '../services/syncTenant.services';
 
@@ -56,9 +56,19 @@ export async function editstatusOfApplicationController(req: Request, res: Respo
     }
 }
 
+
+async function  getActiveApplicationsController(req:Request, res:Response, next:NextFunction) {
+    try{
+        const result = await getAcitveApplicationsService();   
+        res.status(StatusCodes.OK).json(result);
+    }catch (error) {
+        next(error);
+    }
+}
+
 export default {
     getApplicationController,
-    editstatusOfApplicationController
-
+    editstatusOfApplicationController,
+    getActiveApplicationsController
 }
 

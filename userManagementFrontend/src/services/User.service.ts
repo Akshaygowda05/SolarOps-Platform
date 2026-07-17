@@ -201,3 +201,11 @@ export const fetchSummary = async (startDate: string, endDate?: string) => {
         }
     });
 }
+
+
+export const fetchTrueApplication = async () => {
+  const response = await api.get("/admin/applications/active");
+  return response.data;
+};
+
+

@@ -6,6 +6,7 @@ import RobotStatusBreakdownCard from "./Admin/components/RobotStatusBreakdownCar
 import BestApplicationsDashboard from "./Admin/components/Applicationchart";
 import GatewayMapDashboard from "./Admin/components/map";
 import PanelsCleanedHistory from "./Admin/components/historyPannelsCleans";
+import ApplicationSelector from "./Admin/components/ApplicationSelector";
 
 export default function AdminDashboard() {
   return (
@@ -22,7 +23,11 @@ export default function AdminDashboard() {
 
       {/* Structured Layout Grid */}
       <Grid container spacing={3}>
-        
+
+      
+          <div>
+            <ApplicationSelector />
+          </div>
         {/* Row 1: Key Performance Metrics (Top Row) */}
         <Grid size={{ xs: 12, lg: 6 }}>
           <DailyEfficiencyMetrics />

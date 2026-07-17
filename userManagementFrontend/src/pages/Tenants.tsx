@@ -169,7 +169,6 @@ export default function AdminPortal() {
             Tenants ({tenants.length})
           </Typography>
         </Stack>
-``
       </Stack>
 
       {error && (

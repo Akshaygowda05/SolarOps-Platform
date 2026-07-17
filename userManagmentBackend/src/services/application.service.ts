@@ -67,3 +67,29 @@ export async function editStatusOfApplicationService(
     );
   }
 }
+
+export  async function getAcitveApplicationsService(){
+
+
+  try {
+
+    const result = await prisma.chirpstackApplication.findMany({
+      where: {
+        status: {
+          in: [Status.ACTIVE, Status.PENDING],
+        },
+      },
+    });
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (error) {
+
+throw new AppError(
+  "Failed to fetch active applications",
+  StatusCodes.INTERNAL_SERVER_ERROR
+)
+  }
+
+}
