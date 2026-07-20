@@ -209,3 +209,44 @@ export const fetchTrueApplication = async () => {
 };
 
 
+export const fetchDashBoardCount = async() =>{
+    const response = await api.get("/dashboard/device-counts");
+    return response.data
+}
+
+export const fetchCountOfApplication = async(applocationId:string) =>{
+  const response = await api.get(`/applications/${applocationId}/device-counts`)
+  return response.data
+
+}
+
+export const activeApplicationChart = async() =>{
+    const response = await api.get("dashboard/applications")
+    return response.data
+}
+
+
+export const applicationHistoryChart= async(applicationId:string) =>{
+    const response = await api.get(`/applications/${applicationId}/panels/daily"`)
+    return response.data
+
+}
+
+export const historyGlobalChart = async() =>{
+    const response = await api.get(`/dashboard/panels/daily`)
+    return response.data
+}
+
+
+export const GlobalCleanedPannles =  async  () =>{
+    const response = await api.get("/dashboard/panels/today");
+    console.log("i am inside the globalclanedPannel",response.data.data)
+    return response.data
+}
+
+export const applicationPannleCleaned = async(applicationID:string) =>{
+
+    const response = await api.get(`/applications/${applicationID}/panels/daily`)
+    console.log(response)
+    return response.data
+    }

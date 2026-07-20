@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useRecoilValue } from "recoil"; // Assumes standard Recoil installation
 import {
   AreaChart,
   Area,
@@ -15,56 +16,94 @@ import {
   CircularProgress,
   useTheme,
 } from "@mui/material";
+import { applicationHistoryChart, historyGlobalChart } from "../../../services/User.service";
+
+import { selectedApplicationState } from "../../../store/authState";
 
 interface HistoryData {
   date: string;
   panelsCleaned: number;
+  displayDate?: string;
 }
 
 interface ApiResponse {
   success: boolean;
   data: HistoryData[];
+  message?: string;
 }
 
 export default function PanelsCleanedHistory() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
+  // Connect component directly to global active filter state
+  const selectedApplicationId = useRecoilValue(selectedApplicationState);
+
   const [history, setHistory] = useState<HistoryData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("http://localhost:3000/api/history-panels-cleaned")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch historical data");
-        return res.json() as Promise<ApiResponse>;
-      })
-      .then((resData) => {
-        if (resData.success) {
-          // Format raw date strings into highly readable labels (e.g., "13 Jul")
-          const formattedData = resData.data.map((item) => {
-            const dateObj = new Date(item.date);
-            const formattedDate = dateObj.toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "short",
-            });
-            return {
-              ...item,
-              displayDate: formattedDate,
-            };
-          });
-          setHistory(formattedData);
-        } else {
-          setError("API reported error fetching cleaning logs.");
-        }
-        setLoading(false);
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-        setLoading(false);
+  // Reusable helper to parse raw dates uniformly into visual graph ticks (e.g., "13 Jul")
+  const formatChartData = (data: HistoryData[]): HistoryData[] => {
+    return data.map((item) => {
+      const dateObj = new Date(item.date);
+      const formattedDate = dateObj.toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
       });
+      return {
+        ...item,
+        displayDate: formattedDate,
+      };
+    });
+  };
+
+  const fetchGlobalHistoryData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response: ApiResponse = await historyGlobalChart();
+      
+      if (!response.success) {
+        throw new Error(response.message || "Something went wrong fetching global trends");
+      }
+      
+      setHistory(formatChartData(response.data));
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  const fetchApplicationsHistory = useCallback(async (applicationId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response: ApiResponse = await applicationHistoryChart(applicationId);
+      
+      if (!response.success) {
+        throw new Error(response.message || `Something went wrong fetching logs for ID: ${applicationId}`);
+      }
+      
+      setHistory(formatChartData(response.data));
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // React strictly to Recoil filter state adjustments across views automatically
+  useEffect(() => {
+    if (!selectedApplicationId || selectedApplicationId === "ALL") {
+      fetchGlobalHistoryData();
+    } else {
+      fetchApplicationsHistory(selectedApplicationId);
+    }
+  }, [selectedApplicationId, fetchGlobalHistoryData, fetchApplicationsHistory]);
 
   if (loading) {
     return (
@@ -76,13 +115,12 @@ export default function PanelsCleanedHistory() {
 
   if (error) {
     return (
-      <Paper sx={{ p: 2.5, borderColor: "error.main", border: "1px solid", bgcolor: "background.paper", borderRadius: 3 }}>
+      <Paper sx={{ p: 2.5, borderColor: "error.main", border: "1px solid", bgcolor: "background.paper", borderRadius: 3, maxWidth: "500px", margin: "0 auto" }}>
         <Typography variant="body2" color="error" fontWeight={600}>Failed to load historical data: {error}</Typography>
       </Paper>
     );
   }
 
-  // Calculate sum total panels cleaned in this window
   const totalCleaned = history.reduce((sum, current) => sum + current.panelsCleaned, 0);
 
   return (
@@ -134,7 +172,6 @@ export default function PanelsCleanedHistory() {
             data={history}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
-            {/* SVG Defs block generates our smooth neon background gradient */}
             <defs>
               <linearGradient id="glowGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop 
@@ -150,7 +187,6 @@ export default function PanelsCleanedHistory() {
               </linearGradient>
             </defs>
 
-            {/* Subtle Gridlines */}
             <CartesianGrid 
               strokeDasharray="3 3" 
               vertical={false} 
@@ -172,7 +208,6 @@ export default function PanelsCleanedHistory() {
               dx={-5}
             />
 
-            {/* Beautiful Custom Hover Popup */}
             <ChartTooltip
               cursor={{ stroke: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)", strokeWidth: 1.5 }}
               content={({ active, payload }) => {
@@ -203,7 +238,6 @@ export default function PanelsCleanedHistory() {
               }}
             />
 
-            {/* Glowing Gradient Area Line */}
             <Area
               type="monotone"
               dataKey="panelsCleaned"

@@ -3,10 +3,6 @@ import { DashboardController } from "../controllers/admin.controller";
 
 const adminRouter = Router();
 
-// ======================================================
-// Dashboard (All Applications)
-// ======================================================
-
 // Device Counts
 adminRouter.get(
   "/dashboard/device-counts",

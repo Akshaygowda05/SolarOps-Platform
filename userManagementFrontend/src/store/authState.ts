@@ -20,6 +20,6 @@ export const selectedApplicationState = atom<string | null>({
 
 export const selectedApplicationStateForAdmin =  atom<string |null>({
   key:"selectedAdminApp",
-  default:null
+  default:"ALL"
 })
 

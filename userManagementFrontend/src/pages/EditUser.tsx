@@ -7,19 +7,31 @@ import {
   Typography,
   Paper,
   CircularProgress,
-  Divider,
   MenuItem,
   FormControlLabel,
   Switch,
   IconButton,
   InputAdornment,
   LinearProgress,
+  alpha,
+  Grid
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import SaveIcon from '@mui/icons-material/Save';
+import LockResetIcon from '@mui/icons-material/LockReset';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import toast, { Toaster } from "react-hot-toast";
 import { fetchUserById, updateUser, updateUserPassword } from "../services/User.service";
 
-const BRAND_GREEN = "#169647";
+// Exact colors mapped from the provided image layout
+const COLORS = {
+  brandGreen: "#007953",       // Rich Deep Green for header accents & buttons
+  brandGreenLight: "#E6F4EA",  // Light mint green background for status card
+  accentRed: "#D9383A",        // Distinct red for Security Credentials header
+  inputBg: "#F1F3F4",          // Soft light gray background for input text fields
+  textMuted: "#5F6368",        // Standard gray for labels and structural info text
+};
 
 type PasswordStrength = {
   score: number; // 0-4
@@ -34,10 +46,10 @@ function getPasswordStrength(password: string): PasswordStrength {
   if (/\d/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
-  if (score <= 1) return { score, label: "Weak", color: "error.main" };
+  if (score <= 1) return { score, label: "Weak", color: COLORS.accentRed };
   if (score === 2) return { score, label: "Fair", color: "#E07B2A" };
   if (score === 3) return { score, label: "Good", color: "#E07B2A" };
-  return { score, label: "Strong", color: BRAND_GREEN };
+  return { score, label: "Strong", color: COLORS.brandGreen };
 }
 
 export default function EditUser() {
@@ -129,7 +141,6 @@ export default function EditUser() {
       isActive: userData.isActive,
     };
 
-    // Only append user tracking fields if configuration is USER
     if (isUserRole) {
       payload.applicationId = userData.applicationId;
       payload.siteName = userData.siteName;
@@ -183,228 +194,339 @@ export default function EditUser() {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
+  };
+
   if (fetching) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-        <CircularProgress />
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
+        <CircularProgress sx={{ color: COLORS.brandGreen }} />
       </Box>
     );
   }
 
+  // Base styling for modern, custom filled input fields matching image
+  const inputStyles = {
+    bgcolor: COLORS.inputBg,
+    borderRadius: "8px",
+    "&:before, &:after": { display: "none" }, // Remove default underline
+    "& .MuiInputBase-input": { py: 1.8, px: 2, fontWeight: 500, color: "#202124" }
+  };
+
+  const labelStyles = {
+    fontSize: "0.75rem",
+    fontWeight: 700,
+    color: COLORS.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: "0.2px",
+    mb: 0.8,
+    display: "block"
+  };
+
   return (
-    <>
+    <Box sx={{ p: { xs: 2, md: 6 }, bgcolor: "#F8FAFB", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
       <Toaster position="top-right" />
-      <Paper
-        elevation={3}
-        sx={{
-          maxWidth: 480,
-          margin: "30px auto",
-          padding: 4,
-          borderRadius: 2,
-          backgroundColor: "background.paper",
-        }}
-      >
-        <Typography variant="h5" component="h1" gutterBottom sx={{ fontWeight: "bold" }}>
+      
+      {/* PAGE INTRO HEADER */}
+      <Box sx={{ maxWidth: 760, width: "100%", textAlign: "left" }}>
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 800, color: "#1F2937", letterSpacing: '-0.5px', mb: 0.5 }}>
           Edit User Settings
         </Typography>
+        <Typography variant="body2" sx={{ color: COLORS.textMuted, fontWeight: 500, fontSize: "0.95rem" }}>
+          Modify user profiles, infrastructure environments, and system operational parameters. All changes are logged for security auditing.
+        </Typography>
+      </Box>
 
-        {!isValidUserId || fetchError ? (
-          <Typography color="error.main" sx={{ mt: 2 }}>
-            {fetchError}
-          </Typography>
-        ) : (
-          <>
-            <Box component="form" onSubmit={handleUpdateProfile} sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }} color="text.primary">
+      {!isValidUserId || fetchError ? (
+        <Typography color="error.main" sx={{ mt: 2, fontWeight: 600 }}>
+          {fetchError}
+        </Typography>
+      ) : (
+        <>
+          {/* SECTION 1: USER PROFILE DETAILS CARD */}
+          <Paper
+            elevation={0}
+            component="form"
+            onSubmit={handleUpdateProfile}
+            sx={{
+              maxWidth: 760,
+              width: "100%",
+              padding: { xs: 3, md: 5 },
+              borderRadius: "8px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.02)",
+              backgroundColor: "background.paper",
+              display: "flex",
+              flexDirection: "column",
+              gap: 3.5
+            }}
+          >
+            {/* Custom Header Line Accent */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Box sx={{ width: 4, height: 22, bgcolor: COLORS.brandGreen, borderRadius: "2px" }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.8px", color: "#1A365D", fontSize: "0.85rem" }}>
                 User Profile Details
               </Typography>
+            </Box>
 
-              <TextField
-                fullWidth
-                label="Full Name"
-                variant="outlined"
-                margin="dense"
-                value={userData.name}
-                onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-              />
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <label style={labelStyles}>Full Name</label>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  value={userData.name}
+                  onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                  slotProps={{ input: { sx: inputStyles } }}
+                />
+              </Grid>
 
-              <TextField
-                fullWidth
-                label="Email Address"
-                type="email"
-                variant="outlined"
-                margin="dense"
-                value={userData.email}
-                error={isEmailEmpty}
-                helperText={isEmailEmpty ? "Email is required to keep account login active" : ""}
-                onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-              />
+              <Grid item xs={12} sm={6}>
+                <label style={labelStyles}>Email Address</label>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="email"
+                  value={userData.email}
+                  error={isEmailEmpty}
+                  onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                  slotProps={{ input: { sx: inputStyles } }}
+                />
+              </Grid>
 
-              <TextField
-                fullWidth
-                select
-                label="System Role"
-                value={userData.role}
-                margin="dense"
-                onChange={(e) => setUserData({ ...userData, role: e.target.value })}
-              >
-                <MenuItem value="USER">User</MenuItem>
-                <MenuItem value="ADMIN">Administrator</MenuItem>
-              </TextField>
+              <Grid item xs={12} sm={6}>
+                <label style={labelStyles}>System Role</label>
+                <TextField
+                  fullWidth
+                  select
+                  variant="filled"
+                  value={userData.role}
+                  onChange={(e) => setUserData({ ...userData, role: e.target.value })}
+                  slotProps={{ input: { sx: inputStyles } }}
+                >
+                  <MenuItem value="USER">User</MenuItem>
+                  <MenuItem value="ADMIN">Administrator</MenuItem>
+                </TextField>
+              </Grid>
 
-              {/* Conditional rendering based on role layout */}
               {isUserRole && (
-                <>
+                <Grid item xs={12} sm={6}>
+                  <label style={labelStyles}>Site Name</label>
                   <TextField
                     fullWidth
-                    label="Application ID"
-                    variant="outlined"
-                    margin="dense"
-                    value={userData.applicationId}
-                    error={!userData.applicationId.trim()}
-                    helperText={!userData.applicationId.trim() ? "Application ID is required for users" : ""}
-                    onChange={(e) => setUserData({ ...userData, applicationId: e.target.value })}
-                  />
-
-                  <TextField
-                    fullWidth
-                    label="Site Name"
-                    variant="outlined"
-                    margin="dense"
+                    variant="filled"
                     value={userData.siteName}
                     error={!userData.siteName.trim()}
-                    helperText={!userData.siteName.trim() ? "Site Name is required for users" : ""}
                     onChange={(e) => setUserData({ ...userData, siteName: e.target.value })}
+                    slotProps={{ input: { sx: inputStyles } }}
                   />
-                </>
+                </Grid>
               )}
 
-              <Box sx={{ mt: 1, mb: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={userData.isActive}
-                      onChange={(e) => setUserData({ ...userData, isActive: e.target.checked })}
-                      color="primary"
-                    />
-                  }
-                  label={userData.isActive ? "Account is Active" : "Account is Suspended"}
-                />
-              </Box>
-
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={profileLoading || isEmailEmpty || isMissingUserFields}
-                fullWidth
-              >
-                {profileLoading ? "Saving..." : "Save Profile Data"}
-              </Button>
-            </Box>
-
-            <Divider sx={{ my: 4 }} />
-
-            <Box component="form" onSubmit={handleUpdatePassword}>
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }} color="text.primary">
-                Security Credentials
-              </Typography>
-
-              <TextField
-                fullWidth
-                label="New Password"
-                type={showNewPassword ? "text" : "password"}
-                variant="outlined"
-                margin="dense"
-                value={newPassword}
-                error={passwordTooShort}
-                helperText={passwordTooShort ? "Password must be at least 8 characters" : " "}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter a new password"
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label={showNewPassword ? "Hide password" : "Show password"}
-                          onClick={() => setShowNewPassword((prev) => !prev)}
-                          edge="end"
-                        >
-                          {showNewPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-
-              {newPassword.length > 0 && (
-                <Box sx={{ mb: 1 }}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={(passwordStrength.score / 4) * 100}
-                    sx={{
-                      height: 6,
-                      borderRadius: 3,
-                      backgroundColor: "action.hover",
-                      "& .MuiLinearProgress-bar": {
-                        backgroundColor: passwordStrength.color,
-                      },
+              {isUserRole && (
+                <Grid item xs={12}>
+                  <label style={labelStyles}>Application ID</label>
+                  <TextField
+                    fullWidth
+                    variant="filled"
+                    value={userData.applicationId}
+                    error={!userData.applicationId.trim()}
+                    onChange={(e) => setUserData({ ...userData, applicationId: e.target.value })}
+                    slotProps={{ 
+                      input: { 
+                        sx: inputStyles,
+                        endAdornment: (
+                          <InputAdornment position="end" sx={{ pr: 1 }}>
+                            <IconButton onClick={() => copyToClipboard(userData.applicationId)} edge="end" size="small">
+                              <ContentCopyIcon fontSize="small" sx={{ color: COLORS.textMuted }} />
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      } 
                     }}
                   />
-                  <Typography variant="caption" sx={{ color: passwordStrength.color, fontWeight: 600 }}>
-                    {passwordStrength.label}
-                  </Typography>
-                </Box>
+                </Grid>
               )}
+            </Grid>
 
-              <TextField
-                fullWidth
-                label="Confirm New Password"
-                type={showConfirmPassword ? "text" : "password"}
-                variant="outlined"
-                margin="dense"
-                value={confirmPassword}
-                error={passwordsMismatch}
-                helperText={passwordsMismatch ? "Passwords do not match" : " "}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter the new password"
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                          onClick={() => setShowConfirmPassword((prev) => !prev)}
-                          edge="end"
-                        >
-                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
+            {/* Custom Balanced Switch Container Wrapper */}
+            <Box sx={{ 
+              p: 2, 
+              borderRadius: "6px", 
+              bgcolor: userData.isActive ? COLORS.brandGreenLight : "#F4F5F7",
+              border: "1px solid",
+              borderColor: userData.isActive ? alpha(COLORS.brandGreen, 0.15) : "rgba(0,0,0,0.06)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between"
+            }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                {userData.isActive && <CheckCircleIcon sx={{ color: COLORS.brandGreen, fontSize: 20 }} />}
+                <Typography variant="body2" sx={{ fontWeight: 700, color: userData.isActive ? COLORS.brandGreen : COLORS.textMuted }}>
+                  Account Status: {userData.isActive ? "Operating Active" : "Suspended"}
+                </Typography>
+              </Box>
+              <Switch
+                checked={userData.isActive}
+                onChange={(e) => setUserData({ ...userData, isActive: e.target.checked })}
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.brandGreen },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: COLORS.brandGreen },
                 }}
               />
-
-              <Button
-                type="submit"
-                variant="outlined"
-                color="error"
-                disabled={
-                  passwordLoading ||
-                  !newPassword ||
-                  newPassword.length < 8 ||
-                  newPassword !== confirmPassword
-                }
-                fullWidth
-                sx={{ mt: 2 }}
-              >
-                {passwordLoading ? "Updating..." : "Force Update Password"}
-              </Button>
             </Box>
-          </>
-        )}
-      </Paper>
-    </>
+
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={profileLoading || isEmailEmpty || isMissingUserFields}
+              startIcon={<SaveIcon />}
+              fullWidth
+              sx={{
+                borderRadius: "6px",
+                py: 1.6,
+                fontWeight: 700,
+                fontSize: "0.95rem",
+                textTransform: "none",
+                bgcolor: COLORS.brandGreen,
+                '&:hover': { bgcolor: "#006241" },
+                boxShadow: "none",
+                "&.Mui-disabled": { bgcolor: "action.disabledBackground" }
+              }}
+            >
+              {profileLoading ? "Saving Profile..." : "Save Profile Data"}
+            </Button>
+          </Paper>
+
+          {/* SECTION 2: SECURITY CREDENTIALS CARD */}
+          <Paper
+            elevation={0}
+            component="form"
+            onSubmit={handleUpdatePassword}
+            sx={{
+              maxWidth: 760,
+              width: "100%",
+              padding: { xs: 3, md: 5 },
+              borderRadius: "8px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.02)",
+              backgroundColor: "background.paper",
+              display: "flex",
+              flexDirection: "column",
+              gap: 3.5
+            }}
+          >
+            {/* Red accent line for security warning indicators */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Box sx={{ width: 4, height: 22, bgcolor: COLORS.accentRed, borderRadius: "2px" }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.8px", color: "#1A365D", fontSize: "0.85rem" }}>
+                Security Credentials
+              </Typography>
+            </Box>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <label style={labelStyles}>New Password</label>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  error={passwordTooShort}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  slotProps={{
+                    input: {
+                      sx: inputStyles,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setShowNewPassword((prev) => !prev)} edge="end">
+                            {showNewPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <label style={labelStyles}>Confirm New Password</label>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  error={passwordsMismatch}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  slotProps={{
+                    input: {
+                      sx: inputStyles,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setShowConfirmPassword((prev) => !prev)} edge="end">
+                            {showConfirmPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </Grid>
+            </Grid>
+
+            {newPassword.length > 0 && (
+              <Box sx={{ mt: -1, px: 0.5 }}>
+                <LinearProgress
+                  variant="determinate"
+                  value={(passwordStrength.score / 4) * 100}
+                  sx={{
+                    height: 5,
+                    borderRadius: 3,
+                    backgroundColor: "#E8EAED",
+                    "& .MuiLinearProgress-bar": { backgroundColor: passwordStrength.color },
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: passwordStrength.color, fontWeight: 700, display: "block", mt: 0.8 }}>
+                  Password Strength: {passwordStrength.label}
+                </Typography>
+              </Box>
+            )}
+
+            <Button
+              type="submit"
+              variant="outlined"
+              disabled={
+                passwordLoading ||
+                !newPassword ||
+                newPassword.length < 8 ||
+                newPassword !== confirmPassword
+              }
+              startIcon={<LockResetIcon />}
+              fullWidth
+              sx={{
+                borderRadius: "6px",
+                py: 1.5,
+                fontWeight: 700,
+                textTransform: "none",
+                fontSize: "0.95rem",
+                borderWidth: "1px",
+                borderColor: "#D1D5DB",
+                color: "#374151",
+                '&:hover': { 
+                  borderColor: COLORS.accentRed,
+                  bgcolor: alpha(COLORS.accentRed, 0.04),
+                  color: COLORS.accentRed
+                },
+                "&.Mui-disabled": { border: "1px solid #E5E7EB" }
+              }}
+            >
+              {passwordLoading ? "Overwriting..." : "Force Update Password"}
+            </Button>
+          </Paper>
+        </>
+      )}
+    </Box>
   );
 }

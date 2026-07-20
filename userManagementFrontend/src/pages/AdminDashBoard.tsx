@@ -1,4 +1,6 @@
-import { Box,  Grid, Typography } from "@mui/material";
+import { Box, Grid as Grid, Typography } from "@mui/material"; 
+
+
 
 // Standardized import paths relative to this file's location
 import DailyEfficiencyMetrics from "./Admin/components/DailyEfficiencyMetrics";
@@ -23,11 +25,12 @@ export default function AdminDashboard() {
 
       {/* Structured Layout Grid */}
       <Grid container spacing={3}>
+        
+        {/* FIX 1: Properly wrap the Selector in a full-width Grid item */}
+        <Grid size={12}>
+          <ApplicationSelector />
+        </Grid>
 
-      
-          <div>
-            <ApplicationSelector />
-          </div>
         {/* Row 1: Key Performance Metrics (Top Row) */}
         <Grid size={{ xs: 12, lg: 6 }}>
           <DailyEfficiencyMetrics />

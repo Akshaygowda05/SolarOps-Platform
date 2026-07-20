@@ -15,7 +15,6 @@ import { useRecoilState } from "recoil";
 import { fetchTrueApplication } from "../../../services/User.service";
 import { selectedApplicationStateForAdmin } from "../../../store/authState";
 
-
 interface Application {
   id: number;
   chirpstackId: string;
@@ -36,24 +35,17 @@ export default function ApplicationSelector() {
 
   useEffect(() => {
     fetchApplications();
+
   }, []);
 
   const fetchApplications = async () => {
     try {
       setLoading(true);
+      const data = await fetchTrueApplication();
 
-      // Replace with your axios instance if required
-     const data = await fetchTrueApplication();
-    
-
-     
-
-if (data.success) {
-  setApplications(data.data);
-}
-
-
-     
+      if (data.success) {
+        setApplications(data.data);
+      }
     } catch (error) {
       console.error("Failed to load applications", error);
     } finally {
@@ -63,14 +55,11 @@ if (data.success) {
 
   const handleChange = (event: SelectChangeEvent) => {
     setSelectedApplication(event.target.value);
-
-    // Optional
-    localStorage.setItem("selectedApplication", event.target.value);
   };
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center">
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={40}>
         <CircularProgress size={28} />
       </Box>
     );
@@ -84,13 +73,20 @@ if (data.success) {
         bgcolor: "background.paper",
       }}
     >
-      <InputLabel>Application</InputLabel>
+      {/* Added id pairing for proper Material UI label animations */}
+      <InputLabel id="application-selector-label">Application</InputLabel>
 
       <Select
-        value={selectedApplication ?? ""}
+        labelId="application-selector-label"
+        id="application-selector"
         label="Application"
+        value={selectedApplication || "ALL"} 
         onChange={handleChange}
       >
+        <MenuItem value="ALL">
+          All Applications
+        </MenuItem>
+        
         {applications.map((app) => (
           <MenuItem
             key={app.chirpstackId}
@@ -104,13 +100,6 @@ if (data.success) {
             >
               <Box>
                 <Typography fontWeight={600}>{app.name}</Typography>
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                >
-                  {app.description}
-                </Typography>
               </Box>
 
               <Chip

@@ -58,7 +58,7 @@ export default function VectorGatewayMap() {
   useEffect(() => {
     injectPulsingStyles();
     
-    fetch("http://localhost:3000/api/gateway-data")
+    fetch("http://localhost:3000/api/dashboard/gateways")
       .then((res) => {
         if (!res.ok) throw new Error("Network response failed");
         return res.json() as Promise<ApiResponse>;
