@@ -126,7 +126,7 @@ export default function BestApplicationsRadial() {
             <Typography variant="h5" sx={{ fontWeight: 900, color: brandColor, lineHeight: 1, fontSize: "18px" }}>
               {totalDevices.toLocaleString()}
             </Typography>
-            <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ fontSize: "10px", textTransform: "uppercase" }}>
+            <Typography variant="caption" color="text.secondary"  sx={{ fontSize: "10px", textTransform: "uppercase",fontWeight: 700 }}>
               Active Robots
             </Typography>
           </Box>

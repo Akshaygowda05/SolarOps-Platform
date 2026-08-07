@@ -224,9 +224,8 @@ export default function RobotStatusBreakdownCard() {
 
                   <Typography 
                     variant="h4" 
-                    fontWeight={800} 
                     color={isDark ? "text.primary" : "#0F172A"}
-                    sx={{ lineHeight: 1, letterSpacing: "-0.5px" }}
+                    sx={{ lineHeight: 1, letterSpacing: "-0.5px",fontWeight:800 }}
                   >
                     {item.value}
                   </Typography>

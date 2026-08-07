@@ -5,9 +5,9 @@ import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 interface MetricCardProps {
   label: string;
   value: string | number;
-  changeValue: string; 
-  changeLabel: string; 
-  isPositive?: boolean; 
+  changeValue: string;
+  changeLabel: string;
+  isPositive?: boolean;
 }
 
 export default function MetricCard({
@@ -17,7 +17,6 @@ export default function MetricCard({
   changeLabel,
   isPositive = true,
 }: MetricCardProps) {
- 
   const trendColor = isPositive ? "success.main" : "error.main";
   const TrendIcon = isPositive ? TrendingUpIcon : TrendingDownIcon;
 
@@ -25,56 +24,44 @@ export default function MetricCard({
     <Paper
       elevation={0}
       sx={{
-        p: 3,
+        p: 2,
         borderRadius: 2,
         border: "1px solid",
         borderColor: "divider",
         bgcolor: "background.paper",
         display: "flex",
         flexDirection: "column",
-        gap: 1.5,
-        minWidth: 240,
+        gap: 0.75,
+        minWidth: 180,
       }}
     >
       {/* Title / Label */}
       <Typography
         variant="caption"
-        fontWeight={700}
         color="text.secondary"
-        sx={{ letterSpacing: "0.05em", textTransform: "uppercase" }}
+        sx={{ letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700, fontSize: 11 }}
       >
         {label}
       </Typography>
 
       {/* Main Metric Value */}
       <Typography
-        variant="h3"
-        fontWeight={700}
+        variant="h5"
+        sx={{ fontWeight: 700, lineHeight: 1 }}
         color="text.primary"
-        sx={{ lineHeight: 1 }}
       >
         {value}
       </Typography>
 
       {/* Trend Indicator */}
-      <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
-        <TrendIcon sx={{ color: trendColor, fontSize: 18 }} />
-        
-        <Typography
-          fontSize={13}
-          fontWeight={600}
-          color={trendColor}
-          component="span"
-        >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.25 }}>
+        <TrendIcon sx={{ color: trendColor, fontSize: 15 }} />
+
+        <Typography sx={{ fontSize: 12, fontWeight: 600 }} color={trendColor} component="span">
           {changeValue}
         </Typography>
 
-        <Typography
-          fontSize={13}
-          fontWeight={500}
-          color="text.secondary"
-          component="span"
-        >
+        <Typography sx={{ fontSize: 12, fontWeight: 600 }} color="text.secondary" component="span">
           {changeLabel}
         </Typography>
       </Box>

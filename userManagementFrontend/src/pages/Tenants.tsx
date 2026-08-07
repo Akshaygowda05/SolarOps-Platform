@@ -10,17 +10,14 @@ import {
   Alert,
   Stack,
   Avatar,
-  Button,
+  useTheme,
+  alpha,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import SpeedOutlinedIcon from "@mui/icons-material/SpeedOutlined";
 import StorageOutlinedIcon from "@mui/icons-material/StorageOutlined";
 import { api } from "../services/api";
-
-const GREEN = "#169647";
-const ORANGE = "#E07B2A";
 
 interface Tenant {
   id: number;
@@ -35,8 +32,13 @@ interface Tenant {
 }
 
 export default function AdminPortal() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const resetSelectedApplication = useResetRecoilState(selectedApplicationState);
+
+  // Dynamic colors derived from current theme mode
+  const GREEN = theme.palette.mode === "dark" ? "#2e7d32" : "#169647";
+  const ORANGE = theme.palette.mode === "dark" ? "#f57c00" : "#E07B2A";
 
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loadingTenants, setLoadingTenants] = useState(false);
@@ -113,7 +115,6 @@ export default function AdminPortal() {
     <Stack
       direction="row"
       spacing={1.5}
-      alignItems="center"
       sx={{
         flex: 1,
         minWidth: 180,
@@ -122,6 +123,7 @@ export default function AdminPortal() {
         border: "1px solid",
         borderColor: "divider",
         backgroundColor: "background.paper",
+        alignItems: "center",
       }}
     >
       <Box
@@ -132,7 +134,7 @@ export default function AdminPortal() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: `${accent}18`,
+          backgroundColor: alpha(accent, 0.15),
           color: accent,
           flexShrink: 0,
         }}
@@ -143,7 +145,7 @@ export default function AdminPortal() {
         <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
           {label}
         </Typography>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+        <Typography variant="subtitle1" color="text.primary" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
           {value}
         </Typography>
       </Stack>
@@ -154,18 +156,25 @@ export default function AdminPortal() {
     <Box sx={{ py: 4, px: { xs: 2, md: 4 }, maxWidth: 1100, mx: "auto" }}>
       <Stack
         direction="row"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        sx={{ mb: 3 }}
+        sx={{
+          mb: 3,
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        }}
       >
         <Stack spacing={0.5}>
           <Typography
             variant="caption"
-            sx={{ textTransform: "uppercase", letterSpacing: "0.08em", color: "text.disabled", fontWeight: 600 }}
+            sx={{
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              color: "text.secondary",
+              fontWeight: 600,
+            }}
           >
             Admin Portal
           </Typography>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" color="text.primary" sx={{ fontWeight: 700 }}>
             Tenants ({tenants.length})
           </Typography>
         </Stack>
@@ -210,6 +219,7 @@ export default function AdminPortal() {
             border: "1px dashed",
             borderColor: "divider",
             borderRadius: 2,
+            backgroundColor: "background.paper",
           }}
         >
           <Typography variant="body2" color="text.secondary">
@@ -218,68 +228,76 @@ export default function AdminPortal() {
         </Box>
       ) : (
         <Stack spacing={1.5}>
-          {tenants.map((tenant) => {
-            return (
-              <Box
-                key={tenant.id}
-                onClick={() => handleTenantClick(tenant.chirpstackId)}
+          {tenants.map((tenant) => (
+            <Box
+              key={tenant.id}
+              onClick={() => handleTenantClick(tenant.chirpstackId)}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                p: 2,
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: "divider",
+                backgroundColor: "background.paper",
+                cursor: "pointer",
+                transition: "all 0.2s ease-in-out",
+                "&:hover": {
+                  borderColor: GREEN,
+                  boxShadow: `0 2px 8px ${alpha(GREEN, 0.25)}`,
+                },
+                "&:hover .row-chevron": {
+                  color: GREEN,
+                  transform: "translateX(2px)",
+                },
+              }}
+            >
+              <Avatar
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  p: 2,
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  backgroundColor: "background.paper",
-                  cursor: "pointer",
-                  transition: "border-color 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    borderColor: GREEN,
-                    boxShadow: `0 0 0 1px ${GREEN}20`,
-                  },
-                  "&:hover .row-chevron": {
-                    color: GREEN,
-                    transform: "translateX(2px)",
-                  },
+                  width: 40,
+                  height: 40,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  backgroundColor: alpha(GREEN, 0.15),
+                  color: GREEN,
                 }}
               >
-                <Avatar
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    fontSize: 14,
-                    fontWeight: 700,
-                    backgroundColor: `${GREEN}1f`,
-                    color: GREEN,
-                  }}
+                {initials(tenant.name)}
+              </Avatar>
+
+              <Stack spacing={0.3} sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  variant="subtitle1"
+                  color="text.primary"
+                  sx={{ fontWeight: 600, lineHeight: 1.3 }}
+                  noWrap
                 >
-                  {initials(tenant.name)}
-                </Avatar>
-
-                <Stack spacing={0.3} sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.3 }} noWrap>
-                    {tenant.name}
-                  </Typography>
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <CalendarTodayOutlinedIcon sx={{ fontSize: 13, color: "text.disabled" }} />
-                    <Typography variant="caption" color="text.disabled">
-                      Created on {formatDate(tenant.createdAt)}
-                    </Typography>
-                  </Stack>
-                </Stack>
-
-                <Typography variant="caption" sx={{ color: ORANGE, fontWeight: 600, flexShrink: 0 }}>
-                  {tenant._count?.applications || 0} {tenant._count?.applications === 1 ? "App" : "Apps"}
+                  {tenant.name}
                 </Typography>
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                  <CalendarTodayOutlinedIcon sx={{ fontSize: 13, color: "text.secondary" }} />
+                  <Typography variant="caption" color="text.secondary">
+                    Created on {formatDate(tenant.createdAt)}
+                  </Typography>
+                </Stack>
+              </Stack>
 
-                <ChevronRightIcon
-                  sx={{ color: "text.disabled", flexShrink: 0, transition: "color 0.2s, transform 0.2s" }}
-                  className="row-chevron"
-                />
-              </Box>
-            );
-          })}
+              <Typography variant="caption" sx={{ color: ORANGE, fontWeight: 600, flexShrink: 0 }}>
+                {tenant._count?.applications || 0}{" "}
+                {tenant._count?.applications === 1 ? "App" : "Apps"}
+              </Typography>
+
+              <ChevronRightIcon
+                sx={{
+                  color: "text.secondary",
+                  flexShrink: 0,
+                  transition: "color 0.2s, transform 0.2s",
+                }}
+                className="row-chevron"
+              />
+            </Box>
+          ))}
         </Stack>
       )}
     </Box>

@@ -8,13 +8,13 @@ import {
   Paper,
   CircularProgress,
   MenuItem,
-  FormControlLabel,
   Switch,
   IconButton,
   InputAdornment,
   LinearProgress,
   alpha,
-  Grid
+  Grid,
+  useTheme
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -24,35 +24,38 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import toast, { Toaster } from "react-hot-toast";
 import { fetchUserById, updateUser, updateUserPassword } from "../services/User.service";
 
-// Exact colors mapped from the provided image layout
-const COLORS = {
-  brandGreen: "#007953",       // Rich Deep Green for header accents & buttons
-  brandGreenLight: "#E6F4EA",  // Light mint green background for status card
-  accentRed: "#D9383A",        // Distinct red for Security Credentials header
-  inputBg: "#F1F3F4",          // Soft light gray background for input text fields
-  textMuted: "#5F6368",        // Standard gray for labels and structural info text
-};
-
 type PasswordStrength = {
   score: number; // 0-4
   label: string;
   color: string;
 };
 
-function getPasswordStrength(password: string): PasswordStrength {
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-  if (/\d/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 1) return { score, label: "Weak", color: COLORS.accentRed };
-  if (score === 2) return { score, label: "Fair", color: "#E07B2A" };
-  if (score === 3) return { score, label: "Good", color: "#E07B2A" };
-  return { score, label: "Strong", color: COLORS.brandGreen };
-}
-
 export default function EditUser() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
+  // Dynamic colors supporting Light & Dark themes
+  const COLORS = {
+    brandGreen: isDark ? "#4CAF50" : "#007953",       // Balanced green accent
+    brandGreenLight: alpha(isDark ? "#4CAF50" : "#007953", 0.12),
+    accentRed: isDark ? "#FF5252" : "#D9383A",         // Balanced warning/red accent
+    inputBg: isDark ? alpha(theme.palette.common.white, 0.05) : "#F1F3F4",
+    textMuted: theme.palette.text.secondary,
+  };
+
+  const getPasswordStrength = (password: string): PasswordStrength => {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    if (score <= 1) return { score, label: "Weak", color: COLORS.accentRed };
+    if (score === 2) return { score, label: "Fair", color: "#E07B2A" };
+    if (score === 3) return { score, label: "Good", color: "#E07B2A" };
+    return { score, label: "Strong", color: COLORS.brandGreen };
+  };
+
   const params = useParams();
   const urlId = params.id || params.userId;
   const userId = urlId ? parseInt(urlId, 10) : null;
@@ -114,7 +117,7 @@ export default function EditUser() {
 
   const isEmailEmpty = !userData.email || userData.email.trim() === "";
   
-  // Dynamic validation matching your backend rules
+  // Dynamic validation matching backend rules
   const isUserRole = userData.role === "USER";
   const isMissingUserFields = isUserRole && (!userData.applicationId.trim() || !userData.siteName.trim());
 
@@ -133,7 +136,6 @@ export default function EditUser() {
 
     setProfileLoading(true);
 
-    // Build conditional payload safely
     const payload: any = {
       name: userData.name,
       email: userData.email,
@@ -207,34 +209,39 @@ export default function EditUser() {
     );
   }
 
-  // Base styling for modern, custom filled input fields matching image
+  // Adaptive input field styling for light/dark surfaces
   const inputStyles = {
     bgcolor: COLORS.inputBg,
     borderRadius: "8px",
-    "&:before, &:after": { display: "none" }, // Remove default underline
-    "& .MuiInputBase-input": { py: 1.8, px: 2, fontWeight: 500, color: "#202124" }
+    "&:before, &:after": { display: "none" },
+    "& .MuiInputBase-input": { 
+      py: 1.8, 
+      px: 2, 
+      fontWeight: 500, 
+      color: "text.primary" 
+    }
   };
 
   const labelStyles = {
     fontSize: "0.75rem",
     fontWeight: 700,
     color: COLORS.textMuted,
-    textTransform: "uppercase",
+    textTransform: "uppercase" as const,
     letterSpacing: "0.2px",
     mb: 0.8,
     display: "block"
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 6 }, bgcolor: "#F8FAFB", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+    <Box sx={{ p: { xs: 2, md: 6 }, bgcolor: "background.default", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
       <Toaster position="top-right" />
       
       {/* PAGE INTRO HEADER */}
       <Box sx={{ maxWidth: 760, width: "100%", textAlign: "left" }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 800, color: "#1F2937", letterSpacing: '-0.5px', mb: 0.5 }}>
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 800, color: "text.primary", letterSpacing: '-0.5px', mb: 0.5 }}>
           Edit User Settings
         </Typography>
-        <Typography variant="body2" sx={{ color: COLORS.textMuted, fontWeight: 500, fontSize: "0.95rem" }}>
+        <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500, fontSize: "0.95rem" }}>
           Modify user profiles, infrastructure environments, and system operational parameters. All changes are logged for security auditing.
         </Typography>
       </Box>
@@ -254,8 +261,10 @@ export default function EditUser() {
               maxWidth: 760,
               width: "100%",
               padding: { xs: 3, md: 5 },
-              borderRadius: "8px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.02)",
+              borderRadius: "12px",
+              boxShadow: isDark ? `0 4px 24px ${alpha("#000", 0.4)}` : "0 1px 3px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.02)",
+              border: "1px solid",
+              borderColor: "divider",
               backgroundColor: "background.paper",
               display: "flex",
               flexDirection: "column",
@@ -265,13 +274,13 @@ export default function EditUser() {
             {/* Custom Header Line Accent */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Box sx={{ width: 4, height: 22, bgcolor: COLORS.brandGreen, borderRadius: "2px" }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.8px", color: "#1A365D", fontSize: "0.85rem" }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.8px", color: "text.primary", fontSize: "0.85rem" }}>
                 User Profile Details
               </Typography>
             </Box>
 
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <label style={labelStyles}>Full Name</label>
                 <TextField
                   fullWidth
@@ -282,7 +291,7 @@ export default function EditUser() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+               <Grid size={{ xs: 12, md: 4 }}>
                 <label style={labelStyles}>Email Address</label>
                 <TextField
                   fullWidth
@@ -295,7 +304,7 @@ export default function EditUser() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <label style={labelStyles}>System Role</label>
                 <TextField
                   fullWidth
@@ -311,7 +320,7 @@ export default function EditUser() {
               </Grid>
 
               {isUserRole && (
-                <Grid item xs={12} sm={6}>
+                 <Grid size={{ xs: 12, md: 4 }}>
                   <label style={labelStyles}>Site Name</label>
                   <TextField
                     fullWidth
@@ -325,7 +334,7 @@ export default function EditUser() {
               )}
 
               {isUserRole && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <label style={labelStyles}>Application ID</label>
                   <TextField
                     fullWidth
@@ -350,20 +359,20 @@ export default function EditUser() {
               )}
             </Grid>
 
-            {/* Custom Balanced Switch Container Wrapper */}
+            {/* Account Status Switch Box */}
             <Box sx={{ 
               p: 2, 
-              borderRadius: "6px", 
-              bgcolor: userData.isActive ? COLORS.brandGreenLight : "#F4F5F7",
+              borderRadius: "8px", 
+              bgcolor: userData.isActive ? COLORS.brandGreenLight : alpha(theme.palette.action.disabledBackground, 0.3),
               border: "1px solid",
-              borderColor: userData.isActive ? alpha(COLORS.brandGreen, 0.15) : "rgba(0,0,0,0.06)",
+              borderColor: userData.isActive ? alpha(COLORS.brandGreen, 0.3) : "divider",
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between"
+              justify: "space-between"
             }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 {userData.isActive && <CheckCircleIcon sx={{ color: COLORS.brandGreen, fontSize: 20 }} />}
-                <Typography variant="body2" sx={{ fontWeight: 700, color: userData.isActive ? COLORS.brandGreen : COLORS.textMuted }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: userData.isActive ? COLORS.brandGreen : "text.disabled" }}>
                   Account Status: {userData.isActive ? "Operating Active" : "Suspended"}
                 </Typography>
               </Box>
@@ -384,13 +393,14 @@ export default function EditUser() {
               startIcon={<SaveIcon />}
               fullWidth
               sx={{
-                borderRadius: "6px",
+                borderRadius: "8px",
                 py: 1.6,
                 fontWeight: 700,
                 fontSize: "0.95rem",
                 textTransform: "none",
                 bgcolor: COLORS.brandGreen,
-                '&:hover': { bgcolor: "#006241" },
+                color: isDark ? "#000000" : "#FFFFFF",
+                '&:hover': { bgcolor: alpha(COLORS.brandGreen, 0.85) },
                 boxShadow: "none",
                 "&.Mui-disabled": { bgcolor: "action.disabledBackground" }
               }}
@@ -408,24 +418,26 @@ export default function EditUser() {
               maxWidth: 760,
               width: "100%",
               padding: { xs: 3, md: 5 },
-              borderRadius: "8px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.02)",
+              borderRadius: "12px",
+              boxShadow: isDark ? `0 4px 24px ${alpha("#000", 0.4)}` : "0 1px 3px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.02)",
+              border: "1px solid",
+              borderColor: "divider",
               backgroundColor: "background.paper",
               display: "flex",
               flexDirection: "column",
               gap: 3.5
             }}
           >
-            {/* Red accent line for security warning indicators */}
+            {/* Red accent line for security indicators */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Box sx={{ width: 4, height: 22, bgcolor: COLORS.accentRed, borderRadius: "2px" }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.8px", color: "#1A365D", fontSize: "0.85rem" }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.8px", color: "text.primary", fontSize: "0.85rem" }}>
                 Security Credentials
               </Typography>
             </Box>
 
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
+               <Grid size={{ xs: 12, md: 4 }}>
                 <label style={labelStyles}>New Password</label>
                 <TextField
                   fullWidth
@@ -441,7 +453,7 @@ export default function EditUser() {
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton onClick={() => setShowNewPassword((prev) => !prev)} edge="end">
-                            {showNewPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                            {showNewPassword ? <VisibilityOff sx={{ fontSize: 18, color: COLORS.textMuted }} /> : <Visibility sx={{ fontSize: 18, color: COLORS.textMuted }} />}
                           </IconButton>
                         </InputAdornment>
                       ),
@@ -450,7 +462,7 @@ export default function EditUser() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+               <Grid size={{ xs: 12, md: 4 }}>
                 <label style={labelStyles}>Confirm New Password</label>
                 <TextField
                   fullWidth
@@ -466,7 +478,7 @@ export default function EditUser() {
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton onClick={() => setShowConfirmPassword((prev) => !prev)} edge="end">
-                            {showConfirmPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                            {showConfirmPassword ? <VisibilityOff sx={{ fontSize: 18, color: COLORS.textMuted }} /> : <Visibility sx={{ fontSize: 18, color: COLORS.textMuted }} />}
                           </IconButton>
                         </InputAdornment>
                       ),
@@ -484,7 +496,7 @@ export default function EditUser() {
                   sx={{
                     height: 5,
                     borderRadius: 3,
-                    backgroundColor: "#E8EAED",
+                    backgroundColor: alpha(theme.palette.text.primary, 0.08),
                     "& .MuiLinearProgress-bar": { backgroundColor: passwordStrength.color },
                   }}
                 />
@@ -506,20 +518,20 @@ export default function EditUser() {
               startIcon={<LockResetIcon />}
               fullWidth
               sx={{
-                borderRadius: "6px",
+                borderRadius: "8px",
                 py: 1.5,
                 fontWeight: 700,
                 textTransform: "none",
                 fontSize: "0.95rem",
                 borderWidth: "1px",
-                borderColor: "#D1D5DB",
-                color: "#374151",
+                borderColor: "divider",
+                color: "text.primary",
                 '&:hover': { 
                   borderColor: COLORS.accentRed,
-                  bgcolor: alpha(COLORS.accentRed, 0.04),
+                  bgcolor: alpha(COLORS.accentRed, 0.08),
                   color: COLORS.accentRed
                 },
-                "&.Mui-disabled": { border: "1px solid #E5E7EB" }
+                "&.Mui-disabled": { borderColor: "divider", color: "action.disabled" }
               }}
             >
               {passwordLoading ? "Overwriting..." : "Force Update Password"}

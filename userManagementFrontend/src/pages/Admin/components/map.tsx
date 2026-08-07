@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-// Import "Geographies" and "Geography" along with "Marker" from react-simple-maps
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { 
-  Paper, 
-  Typography, 
   Box, 
   CircularProgress, 
   Chip,
   Tooltip,
+  Typography,
   useTheme
 } from "@mui/material";
 
@@ -26,8 +24,8 @@ interface ApiResponse {
   data: Gateway[];
 }
 
-// 100% Reliable public CDN for world atlas map shapes
 const WORLD_TOPO_JSON = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+const MAP_SIZE = 600;
 
 const injectPulsingStyles = () => {
   if (typeof window === "undefined" || document.getElementById("vector-marker-styles")) return;
@@ -82,45 +80,33 @@ export default function VectorGatewayMap() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" sx={{ width: "100%", aspectRatio: "1/1" }}>
-        <CircularProgress size={32} />
+      <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <CircularProgress size={28} />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Paper sx={{ p: 2, borderColor: "error.main", border: "1px solid", bgcolor: "background.paper", width: "100%", aspectRatio: "1/1" }}>
+      <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Typography variant="body2" color="error">Error loading mapping: {error}</Typography>
-      </Paper>
+      </Box>
     );
   }
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 2.5,
-        borderRadius: 3,
-        border: "1px solid",
-        borderColor: "divider",
-        bgcolor: isDark ? "#0D1117" : "#F8F9FA",
-        width: "100%",
-        maxWidth: "480px",
-        margin: "0 auto",
-      }}
-    >
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
       {/* Header Panel */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Box>
-          <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ letterSpacing: "1.5px" }}>
+          <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: "1.5px", fontWeight: 700, fontSize: 11 }}>
             INFRASTRUCTURE
           </Typography>
-          <Typography variant="h6" fontWeight={800} color="text.primary" sx={{ lineHeight: 1.1 }}>
+          <Typography variant="subtitle1" color="text.primary" sx={{ lineHeight: 1.1, fontWeight: 800 }}>
             Regional Sites
           </Typography>
         </Box>
-        <Box display="flex" gap={1}>
+        <Box sx={{ display: "flex", gap: 1 }}>
           <Chip 
             label={`${gateways.filter(g => g.isOnline).length} Active`} 
             size="small" 
@@ -134,11 +120,11 @@ export default function VectorGatewayMap() {
         </Box>
       </Box>
 
-      {/* Perfect Square Map Container */}
+      {/* Map Frame Container */}
       <Box 
         sx={{ 
-          width: "100%", 
-          aspectRatio: "1/1",
+          flex: 1,
+          minHeight: 300,
           borderRadius: 2, 
           overflow: "hidden",
           border: "1px solid",
@@ -151,14 +137,14 @@ export default function VectorGatewayMap() {
       >
         <ComposableMap
           projection="geoMercator"
-          // Tightly focused coordinates zooming directly over India / South Asia
+          width={MAP_SIZE}
+          height={MAP_SIZE}
           projectionConfig={{
-            scale: 700,
-            center: [78.9629, 21.5937] 
+            scale: 700, 
+            center: [78.9629, 22.5937], // Centered on India
           }}
           style={{ width: "100%", height: "100%" }}
         >
-          {/* Read from the TopoJSON features array */}
           <Geographies geography={WORLD_TOPO_JSON}>
             {({ geographies }) =>
               geographies.map((geo) => (
@@ -167,8 +153,8 @@ export default function VectorGatewayMap() {
                   geography={geo}
                   style={{
                     default: {
-                      fill: isDark ? "#1C2128" : "#EAECEF", // Visible landmass gray
-                      stroke: isDark ? "#2D333B" : "#D1D5DB", // Boarder colors
+                      fill: isDark ? "#1C2128" : "#EAECEF",
+                      stroke: isDark ? "#2D333B" : "#D1D5DB",
                       strokeWidth: 0.5,
                       outline: "none"
                     },
@@ -178,16 +164,13 @@ export default function VectorGatewayMap() {
                       strokeWidth: 0.5,
                       outline: "none"
                     },
-                    pressed: {
-                      outline: "none"
-                    }
+                    pressed: { outline: "none" }
                   }}
                 />
               ))
             }
           </Geographies>
 
-          {/* Device Nodes Layer */}
           {gateways.map((gateway) => {
             const statusColor = gateway.isOnline ? "#16A34A" : "#DC2626";
 
@@ -196,13 +179,13 @@ export default function VectorGatewayMap() {
                 <Tooltip
                   title={
                     <Box sx={{ p: 0.5 }}>
-                      <Typography variant="body2" fontWeight={800}>{gateway.gatewayName.trim()}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 800 }}>{gateway.gatewayName.trim()}</Typography>
                       <Typography variant="caption" sx={{ display: "block", color: "rgba(255,255,255,0.7)", mb: 0.5 }}>
                         ID: {gateway.gatewayId}
                       </Typography>
-                      <Box display="flex" alignItems="center" gap={0.5}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                         <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: statusColor }} />
-                        <Typography variant="caption" fontWeight={700}>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
                           {gateway.isOnline ? "Operational" : "Offline"}
                         </Typography>
                       </Box>
@@ -212,7 +195,6 @@ export default function VectorGatewayMap() {
                   placement="top"
                 >
                   <g style={{ cursor: "pointer" }}>
-                    {/* Ripple Ring Effect for active units */}
                     {gateway.isOnline && (
                       <circle
                         cx={0}
@@ -223,7 +205,6 @@ export default function VectorGatewayMap() {
                         className="pulse-ring"
                       />
                     )}
-                    {/* Core Point marker */}
                     <circle
                       cx={0}
                       cy={0}
@@ -239,6 +220,6 @@ export default function VectorGatewayMap() {
           })}
         </ComposableMap>
       </Box>
-    </Paper>
+    </Box>
   );
 }

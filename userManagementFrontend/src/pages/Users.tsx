@@ -29,16 +29,6 @@ interface User {
   };
 }
 
-// Modern Warm Amber/Orange & Indigo Accents
-const COLORS = {
-  primary: "#E65100",      // Deep Amber / Orange
-  primaryLight: "#FFF3E0", // Soft orange background
-  active: "#3F51B5",       // Indigo blue for active status
-  activeLight: "#E8EAF6",
-  inactive: "#78909C",     // Slate for inactive status
-  inactiveLight: "#ECEFF1",
-};
-
 function Users() {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -47,6 +37,18 @@ function Users() {
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+
+  // Dynamic Theme Palette Adaptations
+  const isDark = theme.palette.mode === "dark";
+  
+  const COLORS = {
+    primary: isDark ? "#FFB74D" : "#E65100", // Adapted primary orange/amber for contrast
+    primaryLight: alpha(isDark ? "#FFB74D" : "#E65100", 0.12),
+    active: isDark ? "#7986CB" : "#3F51B5",   // Indigo
+    activeLight: alpha(isDark ? "#7986CB" : "#3F51B5", 0.15),
+    inactive: theme.palette.text.disabled,
+    inactiveLight: alpha(theme.palette.text.disabled, 0.1),
+  };
 
   // Actual auth placeholder
   const currentUserId = 1; 
@@ -91,7 +93,7 @@ function Users() {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 5 }, bgcolor: "#FAFAFA", minHeight: "100vh" }}>
+    <Box sx={{ p: { xs: 2, md: 5 }, bgcolor: "background.default", minHeight: "100vh" }}>
       
       {/* --- HEADER --- */}
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "space-between", alignItems: "center", mb: 5 }}>
@@ -114,8 +116,9 @@ function Users() {
             px: 3, 
             py: 1.2,
             bgcolor: COLORS.primary,
+            color: isDark ? "#000000" : "#FFFFFF",
             '&:hover': {
-              bgcolor: alpha(COLORS.primary, 0.9),
+              bgcolor: alpha(COLORS.primary, 0.85),
             },
             boxShadow: `0 8px 20px 0 ${alpha(COLORS.primary, 0.25)}`
           }}
@@ -127,17 +130,18 @@ function Users() {
       {/* --- TABLE CONTAINER --- */}
       <TableContainer 
         component={Paper} 
+        elevation={0}
         sx={{ 
           borderRadius: "16px", 
-          boxShadow: "0 4px 24px rgba(0,0,0,0.04)", 
+          boxShadow: isDark ? `0 4px 24px ${alpha("#000", 0.4)}` : "0 4px 24px rgba(0,0,0,0.04)", 
           border: "1px solid",
-          borderColor: "rgba(0, 0, 0, 0.04)",
+          borderColor: "divider",
           bgcolor: "background.paper",
           overflow: "hidden"
         }}
       >
         <Table sx={{ minWidth: 800 }}>
-          <TableHead sx={{ bgcolor: "#F5F5F7" }}> 
+          <TableHead sx={{ bgcolor: alpha(theme.palette.action.hover, 0.05) }}> 
             <TableRow>
               <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', letterSpacing: '0.5px' }}>TEAM MEMBER</TableCell>
               <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', letterSpacing: '0.5px' }}>EMAIL ADDRESS</TableCell>
@@ -159,11 +163,10 @@ function Users() {
                   sx={{ 
                     transition: "all 0.2s ease",
                     '&:hover': {
-                      bgcolor: alpha(COLORS.primary, 0.02),
-                      transform: "translateY(-1px)",
-                      boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.06)"
+                      bgcolor: alpha(COLORS.primary, 0.04),
                     },
-                    borderBottom: "1px solid rgba(0, 0, 0, 0.04)"
+                    borderBottom: "1px solid",
+                    borderColor: "divider"
                   }}
                 >
                   {/* Identity Column */}
@@ -173,7 +176,7 @@ function Users() {
                         sx={{ 
                           width: 38, 
                           height: 38, 
-                          bgcolor: isAdmin ? COLORS.primaryLight : "#F4F5F7", 
+                          bgcolor: isAdmin ? COLORS.primaryLight : "action.hover", 
                           color: isAdmin ? COLORS.primary : "text.secondary",
                           borderRadius: "10px"
                         }}
@@ -263,7 +266,7 @@ function Users() {
                               borderRadius: "8px",
                               "&:hover": { 
                                 color: isMe ? "inherit" : "error.main", 
-                                bgcolor: isMe ? "transparent" : "#FFEBEE" 
+                                bgcolor: isMe ? "transparent" : alpha(theme.palette.error.main, 0.12)
                               } 
                             }}
                           >
@@ -287,7 +290,7 @@ function Users() {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{ borderTop: '1px solid', borderColor: 'rgba(0,0,0,0.04)', color: 'text.secondary', fontWeight: 600 }}
+          sx={{ borderTop: '1px solid', borderColor: 'divider', color: 'text.secondary', fontWeight: 600 }}
         />
       </TableContainer>
 
@@ -302,7 +305,7 @@ function Users() {
               p: 1.5, 
               bgcolor: "background.paper", 
               backgroundImage: 'none',
-              boxShadow: "0 20px 60px rgba(0,0,0,0.15)"
+              boxShadow: isDark ? `0 20px 60px ${alpha("#000", 0.6)}` : "0 20px 60px rgba(0,0,0,0.15)"
             }
           }
         }}

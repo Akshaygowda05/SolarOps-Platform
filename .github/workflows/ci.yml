@@ -1,24 +1,25 @@
-name: CI Pipeline
+name: Learn GitHub Actions
 
 on:
   push:
-    branches:
-      - main
-
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  test:
+  learn:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Show project files
+      - name: Who am I?
+        run: whoami
+
+      - name: Where am I?
+        run: pwd
+
+      - name: What OS am I using?
+        run: uname -a
+
+      - name: What files are here?
         run: ls -la
 
-      - name: Show backend files
-        run: ls -la backend
+      - name: What Git version?
+        run: git --version

@@ -142,7 +142,7 @@ try {
 
 
 
-  server.listen(port, "0.0.0.0", () => {
+  server.listen(port,"0.0.0.0", () => {
     loggers.info(`Server is running on port ${port}`);
   });
 }
