@@ -8,17 +8,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: get the source code
+      - name: Get the source code
         uses: actions/checkout@v4
 
-      - name: set up node
-        uses: action/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name : check node version
+      - name: Check Node version
         run: node -v
 
-      - name : check npm version
-        run: npm -v 
+      - name: Check npm version
+        run: npm -v
