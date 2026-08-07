@@ -16,6 +16,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: check the folder name
+        run: ls -la
+
       - name: Check Node version
         run: node -v
 
@@ -23,5 +26,5 @@ jobs:
         run: npm -v
         
       - name : Install dependencies
-        working-directory: ./backend
+        working-directory: ./userManagmentBackend
         run: npm ci
