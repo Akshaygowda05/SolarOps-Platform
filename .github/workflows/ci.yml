@@ -9,17 +9,16 @@ jobs:
 
     steps:
 
-      - name: Who am I?
-        run: whoami
+      - name: get the source code
+        uses: actions/checkout@v4
 
-      - name: Where am I?
-        run: pwd
+      - name: set up node
+        uses: action/setup-node@v4
+        with:
+          node-version: 22
 
-      - name: What OS am I using?
-        run: uname -a
+      - name : check node version
+        run: node -v
 
-      - name: What files are here?
-        run: ls -la
-
-      - name: What Git version?
-        run: git --version
+      - name : check npm version
+        run: npm -v 
