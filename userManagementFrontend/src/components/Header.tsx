@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil";
-import { authState } from "../store/authState";
+import { authState, selectedApplicationState } from "../store/authState";
 import log from "../assets/Aegeus-Technologies-logo.png";
 import { FiLogOut, FiAlertCircle } from "react-icons/fi";
 import { 
@@ -14,7 +14,6 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import { ColorModeContext } from "../App";
 import { useNavigate } from "react-router-dom";
 import { fetchSiteConfigStatus } from "../services/User.service";
-import { selectedApplicationState } from "../store/authState"; // or applicationState
 
 // Animation for the "Attention" pulse
 const softPulse = keyframes`
@@ -29,16 +28,13 @@ function Header() {
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
   const navigate = useNavigate();
-  const setSelectedApplication = useSetRecoilState(
-  selectedApplicationState
-);
+  const setSelectedApplication = useSetRecoilState(selectedApplicationState);
+  const selectedApplicationId = localStorage.getItem("selectedApplicationId");
 
   // State for configuration status
   const [isConfigured, setIsConfigured] = useState(true);
 
   useEffect(() => {
-
-    if(user?.role === "ADMIN") return; // Admins don't need to check configuration status
     const checkStatus = async () => {
       try {
         const response = await fetchSiteConfigStatus();
@@ -49,6 +45,7 @@ function Header() {
         console.error("Status check failed", error);
       }
     };
+
     checkStatus();
   }, [user?.role]);
 
@@ -59,15 +56,12 @@ function Header() {
     window.location.href = "/";
   };
 
-  // this is a function to switch the application for an admin user
-
+  // Switch application function for admin user
   const switchApplication = () => {
-  localStorage.removeItem("selectedApplicationId");
-
-  setSelectedApplication(null);
-
-  navigate("/tenants");
-};
+    localStorage.removeItem("selectedApplicationId");
+    setSelectedApplication(null);
+    navigate("/tenants");
+  };
 
   return (
     <AppBar 
@@ -83,28 +77,40 @@ function Header() {
         zIndex: 1201 
       }}
     >
-      {/* 1. TOP SYSTEM ALERT BANNER (Only shows if not configured) */}
+      {/* 1. TOP SYSTEM ALERT BANNER (Only shows for ADMIN when not configured) */}
       {!isConfigured && (
-        <Box 
-          sx={{ 
-            bgcolor: 'warning.main', 
-            color: 'warning.contrastText',
-            py: 0.5, 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center',
-            gap: 1,
-            cursor: 'pointer',
-            '&:hover': { bgcolor: 'warning.dark' }
-          }}
-          onClick={() => navigate("/site-config")}
-        >
-          <FiAlertCircle size={14} />
-          <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
-            SYSTEM NOT CONFIGURED: CLICK HERE TO SETUP SITE
-          </Typography>
-        </Box>
-      )}
+  <Box
+    sx={{
+      bgcolor: "warning.main",
+      color: "warning.contrastText",
+      py: 0.5,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 1,
+      cursor: user?.role === "ADMIN" ? "pointer" : "default",
+      "&:hover": {
+        bgcolor: user?.role === "ADMIN" ? "warning.dark" : "warning.main",
+      },
+    }}
+    onClick={
+      user?.role === "ADMIN"
+        ? () => navigate("/site-config")
+        : undefined
+    }
+  >
+    <FiAlertCircle size={14} />
+
+    <Typography
+      variant="caption"
+      sx={{ fontWeight: 700, letterSpacing: 0.5 }}
+    >
+      {user?.role === "ADMIN"
+        ? "SYSTEM NOT CONFIGURED: CLICK HERE TO COMPLETE SETUP"
+        : "SYSTEM NOT CONFIGURED: PLEASE CONTACT YOUR ADMINISTRATOR TO COMPLETE THE SITE SETUP"}
+    </Typography>
+  </Box>
+)}
 
       <Toolbar sx={{ justifyContent: "space-between", minHeight: { xs: 56, sm: 64 } }}>
         
@@ -113,55 +119,53 @@ function Header() {
           <img src={log} alt="Logo" style={{ height: "32px", borderRadius: '4px' }} />
           <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 24, my: 'auto' }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary', display: { xs: 'none', md: 'block' } }}>
-            {user?.role === "ADMIN" ? "Admin Dashboard" : `${user?.siteName}`}
+            {user?.role === "ADMIN" ? "Admin Dashboard" : `${user?.siteName || ''}`}
           </Typography>
         </Box>
 
         {/* Right Side: Tools & Profile */}
         <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 1.5 } }}>
           
-        {user?.role === "ADMIN" ? (
-  <Tooltip title="Switch Application">
-    <IconButton
-      onClick={switchApplication}
-      sx={{
-        color: "text.primary",
-      }}
-    >
-      <GroupsIcon />
-    </IconButton>
-  </Tooltip>
-) : (
-  <Tooltip
-    title={
-      isConfigured
-        ? "Site Configuration"
-        : "Action Required: Complete Setup"
-    }
-  >
-    <IconButton
-      onClick={() => navigate("/site-config")}
-      sx={{
-        color: !isConfigured
-          ? "warning.main"
-          : "text.primary",
-        animation: !isConfigured
-          ? `${softPulse} 2s infinite`
-          : "none",
-      }}
-    >
-      <Badge
-        color="error"
-        variant="dot"
-        invisible={isConfigured}
-      >
-        <SettingsSuggestIcon />
-      </Badge>
-    </IconButton>
-  </Tooltip>
-)}
-           
-          
+          {/* Admin Controls: Show both buttons only for ADMIN */}
+          {user?.role === "ADMIN" && selectedApplicationId && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Tooltip title="Switch Application">
+                <IconButton
+                  onClick={switchApplication}
+                  sx={{ color: "text.primary" }}
+                >
+                  <GroupsIcon />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip
+                title={
+                  isConfigured
+                    ? "Site Configuration"
+                    : "Action Required: Complete Setup"
+                }
+              >
+                <IconButton
+                  onClick={() => {
+                    console.log("Navigating to site config...");
+                    navigate("/site-config")}}
+                  sx={{
+                    color: !isConfigured ? "warning.main" : "text.primary",
+                    animation: !isConfigured ? `${softPulse} 2s infinite` : "none",
+                  }}
+                >
+                  <Badge
+                    color="error"
+                    variant="dot"
+                    invisible={isConfigured}
+                  >
+                    <SettingsSuggestIcon />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )}
+
           {/* Theme Toggle */}
           <Tooltip title="Toggle Theme">
             <IconButton onClick={colorMode.toggleColorMode} sx={{ color: 'text.primary' }}>

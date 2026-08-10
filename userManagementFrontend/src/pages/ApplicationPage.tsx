@@ -149,9 +149,7 @@ export default function ApplicationPage() {
   }) => (
     <Stack
       direction="row"
-      spacing={1.5}
-      alignItems="center"
-      justifyContent="space-between"
+      
       sx={{
         flex: 1,
         minWidth: 180,
@@ -160,6 +158,9 @@ export default function ApplicationPage() {
         border: "1px solid",
         borderColor: "divider",
         backgroundColor: "background.paper",
+        spacing:1.5,
+      alignItems:"center",
+      justifyContent:"space-between"
       }}
     >
       <Stack spacing={0}>
