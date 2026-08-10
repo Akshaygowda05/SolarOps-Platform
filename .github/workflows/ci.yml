@@ -32,3 +32,8 @@ jobs:
       - name: Run tests
         working-directory: ./userManagementFrontend
         run: npm ci
+        
+      - name: Run tests
+        working-directory: ./userManagementFrontend
+        run: npm run build
+        
