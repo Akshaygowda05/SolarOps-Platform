@@ -19,12 +19,11 @@ jobs:
       - name: check the folder name
         run: ls -la
 
-      - name: Check Node version
-        run: node -v
+      - name: Check Node and Npm version
+        run: |
+          node -v
+          npm -v
 
-      - name: Check npm version
-        run: npm -v
-        
       - name : Install dependencies
         working-directory: ./userManagmentBackend
         run: npm ci
@@ -36,4 +35,3 @@ jobs:
       - name: Run tests
         working-directory: ./userManagementFrontend
         run: npm run build
-        
