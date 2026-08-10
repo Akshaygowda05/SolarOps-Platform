@@ -94,7 +94,7 @@ export default function BestApplicationsRadial() {
         borderRadius: "12px",
         border: "1px solid",
         borderColor: borderColor, // Synchronized border
-        bgcolor: bgColor,         // Synchronized card background
+        bgcolor: bgColor,        // Synchronized card background
         width: "100%",
         maxWidth: 520,
         margin: "0 auto",
@@ -102,7 +102,7 @@ export default function BestApplicationsRadial() {
       }}
     >
       {/* Modern Top Header Analytics Summary bar */}
-      <Box mb={2} display="flex" justifyContent="space-between" alignItems="center">
+      <Box sx={{ justifyContent: "space-between", alignItems: "center", display: "flex", mb: 2 }}>
         <Box>
           <Typography
             variant="caption"
@@ -126,7 +126,7 @@ export default function BestApplicationsRadial() {
             <Typography variant="h5" sx={{ fontWeight: 900, color: brandColor, lineHeight: 1, fontSize: "18px" }}>
               {totalDevices.toLocaleString()}
             </Typography>
-            <Typography variant="caption" color="text.secondary"  sx={{ fontSize: "10px", textTransform: "uppercase",fontWeight: 700 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 700 }}>
               Active Robots
             </Typography>
           </Box>
@@ -169,7 +169,7 @@ export default function BestApplicationsRadial() {
             overflowY: "auto",
             pr: chartData.length > 6 ? 1 : 0,
             "&::-webkit-scrollbar": { width: "5px" },
-            "&::-webkit-scrollbar-thumb": { bgcolor: borderColor, borderRadius: "4px" } // Clean scrollbar tracker matches borders
+            "&::-webkit-scrollbar-thumb": { bgcolor: borderColor, borderRadius: "4px" }
           }}
         >
           <Box sx={{ width: "100%", height: dynamicHeight }}>
@@ -182,7 +182,6 @@ export default function BestApplicationsRadial() {
                 <XAxis type="number" hide />
                 <YAxis dataKey="name" type="category" hide />
                 
-                {/* 2. Custom components need theme values passed into them as variables */}
                 <Tooltip 
                   cursor={{ fill: cursorFill }} 
                   content={<CustomTooltip themeVars={{ bgColor, borderColor, textColor, secondaryText, brandColor }} />} 
@@ -190,26 +189,30 @@ export default function BestApplicationsRadial() {
                 
                 <Bar 
                   dataKey="devices" 
-                  fill={brandColor} // Injects dynamic color mapping configurations natively
+                  fill={brandColor} 
                   radius={[0, 4, 4, 0]} 
                   barSize={14}
-                  label={(props) => {
-                    const { x, y, width, value, index } = props;
+                  label={(props: any) => {
+                    const { y, width, value, index } = props;
+                    const yValue = Number(y ?? 0);
+                    const widthValue = Number(width ?? 0);
+                    const indexValue = Number(index ?? 0);
+
                     return (
                       <g>
                         <text 
                           x={0} 
-                          y={y - 6} 
-                          fill={secondaryText} // Dynamically handles secondary subtext colors
+                          y={yValue - 6}
+                          fill={secondaryText} 
                           fontSize="11.5px" 
                           fontWeight={700}
                         >
-                          {chartData[index]?.name}
+                          {chartData[indexValue]?.name}
                         </text>
                         <text 
-                          x={width + 8} 
-                          y={y + 7} 
-                          fill={textColor} // Dominant core text tracking match
+                          x={widthValue + 8} 
+                          y={yValue + 7} 
+                          fill={textColor} 
                           fontSize="11.5px" 
                           fontWeight={800}
                         >

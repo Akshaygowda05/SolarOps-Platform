@@ -59,7 +59,7 @@ export default function ApplicationSelector() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={40}>
+      <Box sx ={{ display:"flex", justifyContent:"center", alignItems:"center", minHeight:40}}>
         <CircularProgress size={28} />
       </Box>
     );
@@ -93,13 +93,16 @@ export default function ApplicationSelector() {
             value={app.chirpstackId}
           >
             <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              width="100%"
+         
+             
+              sx={{     display:"flex",
+              justifyContent:"space-between",
+              alignItems:"center",
+               width:"100%"
+            }}
             >
               <Box>
-                <Typography fontWeight={600}>{app.name}</Typography>
+                <Typography  sx={{ fontWeight: 600 }}>{app.name}</Typography>
               </Box>
 
               <Chip

@@ -93,7 +93,7 @@ export default function RobotStatusBreakdownCard() {
   if (error) {
     return (
       <Paper sx={{ p: 2.5, borderColor: "error.main", border: "1px solid", borderRadius: "8px", maxWidth: "520px", margin: "0 auto" }}>
-        <Typography variant="body2" color="error" fontWeight={600}>
+        <Typography variant="body2" sx ={{color:"error", fontWeight: 600}}>
           Error: {error}
         </Typography>
       </Paper>
@@ -124,12 +124,12 @@ export default function RobotStatusBreakdownCard() {
         }}
       >
         {/* Header Segment */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5} sx={{ minHeight: "24px" }}>
+        <Box sx={{ minHeight: "24px", display:"flex", justifyContent:"space-between", alignItems:"center", mb:2.5 }}>
           <Typography 
             variant="subtitle2" 
-            fontWeight={800} 
+            
             color={isDark ? "text.primary" : "#1E293B"} 
-            sx={{ letterSpacing: "0.5px", fontSize: "12.5px" }}
+            sx={{ letterSpacing: "0.5px", fontSize: "12.5px", fontWeight: 800 }}
           >
             ROBOT STATUS BREAKDOWN
           </Typography>
@@ -138,16 +138,17 @@ export default function RobotStatusBreakdownCard() {
           {!showViewAll ? (
             <Box 
               onClick={handleApplicationClick}
-              display="flex" 
-              alignItems="center" 
-              gap={0.5} 
+               
               sx={{ 
                 cursor: "pointer", 
                 color: theme.palette.primary.main,
-                "&:hover": { opacity: 0.8 } 
+                "&:hover": { opacity: 0.8 },
+                display:"flex", 
+              alignItems:"center", 
+              gap:0.5 
               }}
             >
-              <Typography variant="caption" fontWeight={700} sx={{ fontSize: "12px" }}>
+              <Typography variant="caption"  sx={{ fontSize: "12px" , fontWeight: 700, letterSpacing: "0.5px" }}>
                 View All
               </Typography>
               <ArrowForwardIcon sx={{ fontSize: "14px", fontWeight: 700 }} />
@@ -163,7 +164,7 @@ export default function RobotStatusBreakdownCard() {
           {loading ? (
             // Skeleton Layout Blocks
             Array.from(new Array(3)).map((_, idx) => (
-              <Grid item xs={4} key={idx}>
+              <Grid size={{ xs: 4 }} key={idx}>
                 <Box
                   sx={{
                     p: 2,
@@ -186,7 +187,7 @@ export default function RobotStatusBreakdownCard() {
           ) : (
             // Actual Metrics Data Grid
             statusItems.map((item, idx) => (
-              <Grid item xs={4} key={idx}>
+              <Grid size={{ xs: 4 }} key={idx}>
                 <Box
                   sx={{
                     p: 2,
@@ -202,7 +203,7 @@ export default function RobotStatusBreakdownCard() {
                     boxSizing: "border-box"
                   }}
                 >
-                  <Box display="flex" alignItems="center" gap={1} mb={0.75}>
+                  <Box  sx ={{display:"flex", alignItems:"center", gap:1,mb:0.75 }}>
                     <Box 
                       sx={{ 
                         width: 7, 
@@ -213,10 +214,9 @@ export default function RobotStatusBreakdownCard() {
                       }} 
                     />
                     <Typography 
-                      variant="caption" 
-                      fontWeight={800} 
+                   
                       color={isDark ? "text.secondary" : "#334155"}
-                      sx={{ letterSpacing: "0.5px", fontSize: "10.5px" }}
+                      sx={{ letterSpacing: "0.5px", fontSize: "10.5px", variant:"caption",fontWeight:800  }}
                     >
                       {item.label}
                     </Typography>

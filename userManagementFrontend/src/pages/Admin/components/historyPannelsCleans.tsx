@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useRecoilValue } from "recoil"; // Assumes standard Recoil installation
+import { useRecoilValue } from "recoil";
 import {
   AreaChart,
   Area,
@@ -36,14 +36,12 @@ export default function PanelsCleanedHistory() {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
-  // Connect component directly to global active filter state
   const selectedApplicationId = useRecoilValue(selectedApplicationState);
 
   const [history, setHistory] = useState<HistoryData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Reusable helper to parse raw dates uniformly into visual graph ticks (e.g., "13 Jul")
   const formatChartData = (data: HistoryData[]): HistoryData[] => {
     return data.map((item) => {
       const dateObj = new Date(item.date);
@@ -96,7 +94,6 @@ export default function PanelsCleanedHistory() {
     }
   }, []);
 
-  // React strictly to Recoil filter state adjustments across views automatically
   useEffect(() => {
     if (!selectedApplicationId || selectedApplicationId === "ALL") {
       fetchGlobalHistoryData();
@@ -107,7 +104,7 @@ export default function PanelsCleanedHistory() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" sx={{ width: "100%", height: 320 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: 320 }}>
         <CircularProgress size={28} thickness={5} sx={{ color: "primary.main" }} />
       </Box>
     );
@@ -116,7 +113,9 @@ export default function PanelsCleanedHistory() {
   if (error) {
     return (
       <Paper sx={{ p: 2.5, borderColor: "error.main", border: "1px solid", bgcolor: "background.paper", borderRadius: 3, maxWidth: "500px", margin: "0 auto" }}>
-        <Typography variant="body2" color="error" fontWeight={600}>Failed to load historical data: {error}</Typography>
+        <Typography sx={{ typography: "body2", color: "error.main", fontWeight: 600 }}>
+          Failed to load historical data: {error}
+        </Typography>
       </Paper>
     );
   }
@@ -141,25 +140,51 @@ export default function PanelsCleanedHistory() {
       }}
     >
       {/* Header Metric */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
         <Box>
           <Typography 
-            variant="caption" 
-            fontWeight={800} 
-            color="primary.main" 
-            sx={{ letterSpacing: "1.5px", textTransform: "uppercase", fontSize: "10px" }}
+            sx={{ 
+              typography: "caption", 
+              fontWeight: 800, 
+              color: "primary.main", 
+              letterSpacing: "1.5px", 
+              textTransform: "uppercase", 
+              fontSize: "10px" 
+            }}
           >
             CLEANING EFFICIENCY
           </Typography>
-          <Typography variant="h6" fontWeight={900} color="text.primary" sx={{ letterSpacing: "-0.5px", mt: 0.5 }}>
+          <Typography 
+            sx={{ 
+              typography: "h6", 
+              fontWeight: 900, 
+              color: "text.primary", 
+              letterSpacing: "-0.5px", 
+              mt: 0.5 
+            }}
+          >
             Panels Cleaned Trend
           </Typography>
         </Box>
-        <Box textAlign="right">
-          <Typography variant="h5" fontWeight={900} color="text.primary" sx={{ fontFamily: "monospace", lineHeight: 1 }}>
+        <Box sx={{ textAlign: "right" }}>
+          <Typography 
+            sx={{ 
+              typography: "h5", 
+              fontWeight: 900, 
+              color: "text.primary", 
+              fontFamily: "monospace", 
+              lineHeight: 1 
+            }}
+          >
             {totalCleaned.toLocaleString()}
           </Typography>
-          <Typography variant="caption" color="text.secondary" fontWeight={600}>
+          <Typography 
+            sx={{ 
+              typography: "caption", 
+              color: "text.secondary", 
+              fontWeight: 600 
+            }}
+          >
             Total Cleaned
           </Typography>
         </Box>
@@ -225,10 +250,24 @@ export default function PanelsCleanedHistory() {
                         boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)"
                       }}
                     >
-                      <Typography variant="caption" color="text.secondary" fontWeight={700} display="block">
+                      <Typography 
+                        sx={{ 
+                          typography: "caption", 
+                          color: "text.secondary", 
+                          fontWeight: 700, 
+                          display: "block" 
+                        }}
+                      >
                         {data.displayDate}
                       </Typography>
-                      <Typography variant="body2" color="primary.main" fontWeight={900} sx={{ mt: 0.5 }}>
+                      <Typography 
+                        sx={{ 
+                          typography: "body2", 
+                          color: "primary.main", 
+                          fontWeight: 900, 
+                          mt: 0.5 
+                        }}
+                      >
                         {data.panelsCleaned.toLocaleString()} Panels
                       </Typography>
                     </Paper>

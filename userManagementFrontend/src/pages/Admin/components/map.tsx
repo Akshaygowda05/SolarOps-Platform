@@ -146,8 +146,8 @@ export default function VectorGatewayMap() {
           style={{ width: "100%", height: "100%" }}
         >
           <Geographies geography={WORLD_TOPO_JSON}>
-            {({ geographies }) =>
-              geographies.map((geo) => (
+            {({ geographies }: { geographies: any[] }) =>
+              geographies.map((geo: any) => (
                 <Geography
                   key={geo.rsmKey}
                   geography={geo}
