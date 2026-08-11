@@ -38,12 +38,18 @@ jobs:
         working-directory: ./userManagmentBackend
         run: npm run build
       
-      - name: Run tests
+      - name: Install dependencies for frontend
         working-directory: ./userManagementFrontend
         run: npm ci
 
       - name : build the frontend
         working-directory: ./userManagementFrontend
         run: npm run build
+
+      - name: Build backend Docker image
+        run: docker build -t user-management-backend:1.0 ./userManagmentBackend
+
+      - name: Build frontend Docker image
+        run: docker build -t user-management-frontend:1.0 ./userManagementFrontend
         
      
