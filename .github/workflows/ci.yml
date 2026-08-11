@@ -58,18 +58,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set lowercase GitHub username
+        run: echo "IMAGE_OWNER=${GITHUB_ACTOR,,}" >> $GITHUB_ENV
+
       - name: Build backend Docker image
-        run: docker build -t ghcr.io/${{ github.actor }}/user-management-backend:1.0 ./userManagmentBackend
+        run: docker build -t ghcr.io/${{ env.IMAGE_OWNER }}/user-management-backend:1.0 ./userManagmentBackend
 
       - name: Build frontend Docker image
-        run: docker build -t ghcr.io/${{ github.actor }}/user-management-frontend:1.0 ./userManagementFrontend
+        run: docker build -t ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:1.0 ./userManagementFrontend
 
-      - name : Push backend Docker image to GitHub Container Registry
-        run: docker push ghcr.io/${{ github.actor }}/user-management-backend:1.0
+      - name: Push backend Docker image to GitHub Container Registry
+        run: docker push ghcr.io/${{ env.IMAGE_OWNER }}/user-management-backend:1.0
 
-      - name : Push frontend Docker image to GitHub Container Registry
-        run: docker push ghcr.io/${{ github.actor }}/user-management-frontend:1.0
-
+      - name: Push frontend Docker image to GitHub Container Registry
+        run: docker push ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:1.0
       
         
      
