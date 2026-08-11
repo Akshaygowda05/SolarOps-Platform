@@ -3,6 +3,10 @@ name: Learn GitHub Actions
 on:
   push:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   learn:
     runs-on: ubuntu-latest
@@ -46,10 +50,26 @@ jobs:
         working-directory: ./userManagementFrontend
         run: npm run build
 
+
+      - name: login to github container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build backend Docker image
-        run: docker build -t user-management-backend:1.0 ./userManagmentBackend
+        run: docker build -t ghcr.io/${{ github.actor }}/user-management-backend:1.0 ./userManagmentBackend
 
       - name: Build frontend Docker image
-        run: docker build -t user-management-frontend:1.0 ./userManagementFrontend
+        run: docker build -t ghcr.io/${{ github.actor }}/user-management-frontend:1.0 ./userManagementFrontend
+
+      - name : Push backend Docker image to GitHub Container Registry
+        run: docker push ghcr.io/${{ github.actor }}/user-management-backend:1.0
+
+      - name : Push frontend Docker image to GitHub Container Registry
+        run: docker push ghcr.io/${{ github.actor }}/user-management-frontend:1.0
+
+      
         
      
