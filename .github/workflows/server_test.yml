@@ -1,0 +1,16 @@
+name: Test Production Server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-server:
+    runs-on: self-hosted
+
+    steps:
+      - name: Check server
+        run: |
+          hostname
+          docker --version
+          docker compose version
+          docker ps
