@@ -20,58 +20,84 @@ jobs:
         with:
           node-version: 22
 
-      - name: check the folder name
+      - name: Check the folder name
         run: ls -la
 
-      - name: Check Node and Npm version
+      - name: Check Node and NPM version
         run: |
           node -v
           npm -v
 
-      - name : Install dependencies
+      # -------------------------
+      # Backend
+      # -------------------------
+
+      - name: Install backend dependencies
         working-directory: ./userManagmentBackend
         run: npm ci
 
-      - name : Generate Prisma Client
+      - name: Generate Prisma Client
         working-directory: ./userManagmentBackend
         env:
           DATABASE_URL: postgresql://postgres:postgres@db:5432/dummy
         run: npx prisma generate
 
-      - name: build the backend
+      - name: Build the backend
         working-directory: ./userManagmentBackend
         run: npm run build
-      
-      - name: Install dependencies for frontend
+
+      # -------------------------
+      # Frontend
+      # -------------------------
+
+      - name: Install frontend dependencies
         working-directory: ./userManagementFrontend
         run: npm ci
 
-      - name : build the frontend
+      - name: Build the frontend
         working-directory: ./userManagementFrontend
         run: npm run build
 
+      # -------------------------
+      # Login to GitHub Container Registry
+      # -------------------------
 
-      - name: login to github container registry
-        uses: docker/login-action@v2
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # -------------------------
+      # Get lowercase GitHub username
+      # -------------------------
+
       - name: Set lowercase GitHub username
-        run: echo "IMAGE_OWNER=${GITHUB_ACTOR,,}" >> $GITHUB_ENV
+        run: echo "IMAGE_OWNER=${GITHUB_ACTOR,,}" >> "$GITHUB_ENV"
 
-      - name: Build backend Docker image
-        run: docker build -t ghcr.io/${{ env.IMAGE_OWNER }}/user-management-backend:1.0 ./userManagmentBackend
+      # -------------------------
+      # Backend Docker image
+      # -------------------------
 
-      - name: Build frontend Docker image
-        run: docker build -t ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:1.0 ./userManagementFrontend
+      - name: Build and push backend Docker image
+        run: |
+          docker build \
+            -t ghcr.io/${{ env.IMAGE_OWNER }}/user-management-backend:latest \
+            ./userManagmentBackend
 
-      - name: Push backend Docker image to GitHub Container Registry
-        run: docker push ghcr.io/${{ env.IMAGE_OWNER }}/user-management-backend:1.0
+          docker push \
+            ghcr.io/${{ env.IMAGE_OWNER }}/user-management-backend:latest
 
-      - name: Push frontend Docker image to GitHub Container Registry
-        run: docker push ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:1.0
-      
-        
-     
+      # -------------------------
+      # Frontend Docker image
+      # -------------------------
+
+      - name: Build and push frontend Docker image
+        run: |
+          docker build \
+            -t ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:latest \
+            ./userManagementFrontend
+
+          docker push \
+            ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:latest
