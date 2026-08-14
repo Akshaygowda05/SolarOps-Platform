@@ -5,7 +5,9 @@ import {
   Box, 
   Grid,
   Skeleton,
-  useTheme 
+  useTheme,
+  Backdrop,
+  CircularProgress
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { fetchCountOfApplication, fetchDashBoardCount } from "../../../services/User.service";
@@ -78,13 +80,17 @@ export default function RobotStatusBreakdownCard() {
   const handleApplicationClick = () => {
     if (!applicationId) return;
 
+    // Immediately start navigation transition
+    setNavigating(true);
+
+    // Save application context
     setSelectedApplication(applicationId);
     localStorage.setItem("selectedApplicationId", applicationId);
 
-    setNavigating(true);
+    // Smooth navigation delay
     setTimeout(() => {
       navigate("/dashboard");
-    }, 1200);
+    }, 800); // 800ms gives a responsive yet smooth transition feel
   };
 
   if (error) {
@@ -97,7 +103,6 @@ export default function RobotStatusBreakdownCard() {
     );
   }
 
-  // dotColor kept for the pulse dot; emoji added per status for quick scanning
   const statusItems = counts ? [
     { label: "ONLINE", value: counts.onlineDevices, dotColor: "#10B981", emoji: "🟢" },
     { label: "OFFLINE", value: counts.offlineDevices, dotColor: "#EF4444", emoji: "🔴" },
@@ -152,7 +157,7 @@ export default function RobotStatusBreakdownCard() {
           )}
         </Box>
 
-        {/* Dynamic Display Area: Loading Skeletons vs Data Panels */}
+        {/* Dynamic Display Area */}
         <Grid container spacing={1.5}>
           {loading ? (
             Array.from(new Array(3)).map((_, idx) => (
@@ -223,26 +228,31 @@ export default function RobotStatusBreakdownCard() {
         </Grid>
       </Paper>
 
-      {navigating && (
-        <Box
-          sx={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexDirection: "column",
-            gap: 2,
-            backgroundColor: "background.default",
+      {/* Full-screen Backdrop Loading Overlay */}
+      <Backdrop
+        open={navigating}
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 999,
+          bgcolor: isDark ? "rgba(13, 17, 23, 0.85)" : "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
+        <CircularProgress color="primary" size={44} thickness={4} />
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            fontWeight: 600, 
+            color: isDark ? "text.primary" : "text.secondary",
+            letterSpacing: "0.5px"
           }}
         >
-          <Skeleton variant="circular" width={40} height={40} />
-          <Typography variant="body2" color="text.secondary">
-            Loading dashboard context...
-          </Typography>
-        </Box>
-      )}
+          Loading dashboard context...
+        </Typography>
+      </Backdrop>
     </Box>
   );
 }
