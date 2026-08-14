@@ -1,6 +1,5 @@
 import AppError from "../utils/AppError";
 import { StatusCodes } from "http-status-codes";
-import apiClient from "../config/apiclient";
 import { prisma } from "../config/primsaConfig";
 
 class TenantServices {

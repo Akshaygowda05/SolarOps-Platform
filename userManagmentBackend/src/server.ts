@@ -22,7 +22,7 @@ import { syncAllGateway } from "./services/syncGateway.service";
 import { listTenants } from "./services/tenantGrc.service";
 
 
-const port = 3000;
+const port = 3001;
 
 
 export const app = express();
@@ -113,6 +113,10 @@ async function startServer() {
     res.json(events);
   });
 
+
+  //===============================================
+  // evrry 45 minutes sync all gateways for all tenants
+  //==============================================
   cron.schedule('*/45 * * * *', async () => {
 loggers.info('Running scheduled job to check gateway  health...');
 
@@ -136,6 +140,8 @@ try {
   loggers.error("Error occurred while syncing gateways:", error);
 }
   })
+
+
 
   app.use(globalErrorHandler);
 

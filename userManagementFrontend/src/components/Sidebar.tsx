@@ -1,4 +1,5 @@
-import { useRecoilValue } from "recoil";
+import { useEffect } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { authState, selectedApplicationState } from "../store/authState";
 import { Link, useLocation } from "react-router-dom";
 import { Box, Typography, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useTheme } from "@mui/material";
@@ -14,18 +15,40 @@ import PeopleIcon from '@mui/icons-material/People';
 
 function Sidebar() {
   const user = useRecoilValue(authState);
-  const selectedAppId = useRecoilValue(selectedApplicationState);
-  const { pathname } = useLocation();
+  const [selectedAppId, setSelectedAppId] = useRecoilState(selectedApplicationState);
+  const location = useLocation();
+  const { pathname } = location;
+
+  // -------------------------------------------------------------
+  // ROUTE & HISTORY SYNC EFFECT
+  // Automatically clears selectedAppId whenever the user navigates 
+  // back to the tenants list or applications selection pages.
+  // -------------------------------------------------------------
+  useEffect(() => {
+    const isTenantOrAppListPage = 
+      pathname === "/tenants" || 
+      pathname.includes("/applications");
+
+    if (isTenantOrAppListPage) {
+      localStorage.removeItem("selectedApplicationId");
+      setSelectedAppId(null);
+    } else {
+      // Restore from localStorage if on an app-dependent page
+      const storedAppId = localStorage.getItem("selectedApplicationId");
+      if (storedAppId && storedAppId !== selectedAppId) {
+        setSelectedAppId(storedAppId);
+      }
+    }
+  }, [pathname, setSelectedAppId]);
 
   if (!user) return null;
 
-  // 1. Centralized navigation definitions to eliminate duplication
+  // 1. Centralized navigation definitions
   const renderStandardNavItems = () => (
     <>
       <NavItem to="/dashboard" label="Dashboard" icon={<DashboardIcon />} active={pathname === "/dashboard"} />
       <NavItem to="/devices" label="Devices" icon={<SmartToyIcon />} active={pathname === "/devices"} />
       <NavItem to="/multicast-groups" label="Multicast" icon={<GroupsIcon />} active={pathname === "/multicast-groups"} />
-      {/* Note: Kept original path "/Robotsbatteies" to avoid breaking routes, but fixed label typo to "Batteries" */}
       <NavItem to="/Robotsbatteies" label="Batteries" icon={<BatteryChargingFullIcon />} active={pathname === "/Robotsbatteies"} />
       <NavItem to="/logs" label="System Logs" icon={<ReceiptLongIcon />} active={pathname === "/logs"} />
       <NavItem to="/reports" label="Reports" icon={<ReceiptLongIcon />} active={pathname === "/reports"} />
@@ -35,9 +58,9 @@ function Sidebar() {
   return (
     <Box sx={{
       position: "fixed",
-      top: 68, // Matches Header height
+      top: 68,
       left: 0,
-      height: "calc(100vh - 68px)", // Updated from 64px to cleanly match your top offset of 68
+      height: "calc(100vh - 68px)",
       width: "240px",
       bgcolor: "background.paper",
       borderRight: "1px solid",
@@ -93,7 +116,7 @@ function Sidebar() {
   );
 }
 
-// Sub-component for Nav Items to keep code clean
+// Sub-component for Nav Items
 interface NavItemProps {
   to: string;
   label: string;

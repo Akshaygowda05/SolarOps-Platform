@@ -32,19 +32,17 @@ export default function RobotStatusBreakdownCard() {
   const navigate = useNavigate();
   const [navigating, setNavigating] = useState(false);
 
-  // Checks if the "View All" element should be displayed
   const showViewAll = !applicationId || applicationId === "ALL";
 
   useEffect(() => {
-
-  localStorage.removeItem("selectedApplicationId");
+    localStorage.removeItem("selectedApplicationId");
     if (applicationId === "ALL" || !applicationId) {
       fetchGlobalCount();
     } else {
       applicationCount(applicationId);
     }
   }, [applicationId]);
-  
+
   const fetchGlobalCount = async () => {
     try {
       setLoading(true);
@@ -65,7 +63,6 @@ export default function RobotStatusBreakdownCard() {
     try {
       setLoading(true);
       const response = await fetchCountOfApplication(app);
-
       if (response.success) {
         setCounts(response.data);
       } else {
@@ -79,8 +76,8 @@ export default function RobotStatusBreakdownCard() {
   };
 
   const handleApplicationClick = () => {
-    if (!applicationId) return; 
-    
+    if (!applicationId) return;
+
     setSelectedApplication(applicationId);
     localStorage.setItem("selectedApplicationId", applicationId);
 
@@ -93,18 +90,18 @@ export default function RobotStatusBreakdownCard() {
   if (error) {
     return (
       <Paper sx={{ p: 2.5, borderColor: "error.main", border: "1px solid", borderRadius: "8px", maxWidth: "520px", margin: "0 auto" }}>
-        <Typography variant="body2" sx ={{color:"error", fontWeight: 600}}>
-          Error: {error}
+        <Typography variant="body2" sx={{ color: "error.main", fontWeight: 600 }}>
+          ⚠️ Error: {error}
         </Typography>
       </Paper>
     );
   }
 
-  // Fallback map data layout helper
+  // dotColor kept for the pulse dot; emoji added per status for quick scanning
   const statusItems = counts ? [
-    { label: "ONLINE", value: counts.onlineDevices, dotColor: "#10B981" },
-    { label: "OFFLINE", value: counts.offlineDevices, dotColor: "#EF4444" },
-    { label: "TOTAL", value: counts.totalDevices, dotColor: "#3B82F6" },
+    { label: "ONLINE", value: counts.onlineDevices, dotColor: "#10B981", emoji: "🟢" },
+    { label: "OFFLINE", value: counts.offlineDevices, dotColor: "#EF4444", emoji: "🔴" },
+    { label: "TOTAL", value: counts.totalDevices, dotColor: "#3B82F6", emoji: "🤖" },
   ] : [];
 
   return (
@@ -124,37 +121,33 @@ export default function RobotStatusBreakdownCard() {
         }}
       >
         {/* Header Segment */}
-        <Box sx={{ minHeight: "24px", display:"flex", justifyContent:"space-between", alignItems:"center", mb:2.5 }}>
-          <Typography 
-            variant="subtitle2" 
-            
-            color={isDark ? "text.primary" : "#1E293B"} 
-            sx={{ letterSpacing: "0.5px", fontSize: "12.5px", fontWeight: 800 }}
+        <Box sx={{ minHeight: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2.5 }}>
+          <Typography
+            variant="subtitle2"
+            color={isDark ? "text.primary" : "#1E293B"}
+            sx={{ letterSpacing: "0.5px", fontSize: "12.5px", fontWeight: 800, display: "flex", alignItems: "center", gap: 0.75 }}
           >
-            ROBOT STATUS BREAKDOWN
+            <span role="img" aria-label="robot">🤖</span> ROBOT STATUS BREAKDOWN
           </Typography>
-          
-          {/* Only render "View All" actions when no specific appId is targeted */}
+
           {!showViewAll ? (
-            <Box 
+            <Box
               onClick={handleApplicationClick}
-               
-              sx={{ 
-                cursor: "pointer", 
+              sx={{
+                cursor: "pointer",
                 color: theme.palette.primary.main,
                 "&:hover": { opacity: 0.8 },
-                display:"flex", 
-              alignItems:"center", 
-              gap:0.5 
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5
               }}
             >
-              <Typography variant="caption"  sx={{ fontSize: "12px" , fontWeight: 700, letterSpacing: "0.5px" }}>
+              <Typography variant="caption" sx={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.5px" }}>
                 View All
               </Typography>
               <ArrowForwardIcon sx={{ fontSize: "14px", fontWeight: 700 }} />
             </Box>
           ) : (
-            // Empty spacer block when hidden to prevent card height collapse
             <Box sx={{ width: 14, height: 14 }} />
           )}
         </Box>
@@ -162,7 +155,6 @@ export default function RobotStatusBreakdownCard() {
         {/* Dynamic Display Area: Loading Skeletons vs Data Panels */}
         <Grid container spacing={1.5}>
           {loading ? (
-            // Skeleton Layout Blocks
             Array.from(new Array(3)).map((_, idx) => (
               <Grid size={{ xs: 4 }} key={idx}>
                 <Box
@@ -185,7 +177,6 @@ export default function RobotStatusBreakdownCard() {
               </Grid>
             ))
           ) : (
-            // Actual Metrics Data Grid
             statusItems.map((item, idx) => (
               <Grid size={{ xs: 4 }} key={idx}>
                 <Box
@@ -200,32 +191,28 @@ export default function RobotStatusBreakdownCard() {
                     justifyContent: "center",
                     height: "100%",
                     minHeight: "75px",
-                    boxSizing: "border-box"
+                    boxSizing: "border-box",
+                    transition: "transform 0.15s ease, border-color 0.15s ease",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      borderColor: item.dotColor,
+                    }
                   }}
                 >
-                  <Box  sx ={{display:"flex", alignItems:"center", gap:1,mb:0.75 }}>
-                    <Box 
-                      sx={{ 
-                        width: 7, 
-                        height: 7, 
-                        borderRadius: "50%", 
-                        bgcolor: item.dotColor,
-                        flexShrink: 0
-                      }} 
-                    />
-                    <Typography 
-                   
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 0.75 }}>
+                    <Typography sx={{ fontSize: "11px", lineHeight: 1 }}>{item.emoji}</Typography>
+                    <Typography
                       color={isDark ? "text.secondary" : "#334155"}
-                      sx={{ letterSpacing: "0.5px", fontSize: "10.5px", variant:"caption",fontWeight:800  }}
+                      sx={{ letterSpacing: "0.5px", fontSize: "10.5px", fontWeight: 800 }}
                     >
                       {item.label}
                     </Typography>
                   </Box>
 
-                  <Typography 
-                    variant="h4" 
+                  <Typography
+                    variant="h4"
                     color={isDark ? "text.primary" : "#0F172A"}
-                    sx={{ lineHeight: 1, letterSpacing: "-0.5px",fontWeight:800 }}
+                    sx={{ lineHeight: 1, letterSpacing: "-0.5px", fontWeight: 800 }}
                   >
                     {item.value}
                   </Typography>
@@ -236,7 +223,6 @@ export default function RobotStatusBreakdownCard() {
         </Grid>
       </Paper>
 
-      {/* Screen blocker navigation overlay */}
       {navigating && (
         <Box
           sx={{

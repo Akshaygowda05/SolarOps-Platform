@@ -3,6 +3,10 @@ import { DashboardController } from "../controllers/admin.controller";
 
 const adminRouter = Router();
 
+// ======================================================
+// Dashboard (All Active & Pending Applications)
+// ======================================================
+
 // Device Counts
 adminRouter.get(
   "/dashboard/device-counts",
@@ -25,6 +29,12 @@ adminRouter.get(
 adminRouter.get(
   "/dashboard/panels/monthly",
   DashboardController.getDashboardMonthlyPanelsCleaned
+);
+
+// Yearly Panels Cleaned
+adminRouter.get(
+  "/dashboard/panels/yearly",
+  DashboardController.getDashboardYearlyPanelsCleaned
 );
 
 // Gateway States
@@ -65,6 +75,12 @@ adminRouter.get(
 adminRouter.get(
   "/applications/:applicationId/panels/monthly",
   DashboardController.getApplicationMonthlyPanelsCleaned
+);
+
+// Yearly Panels Cleaned
+adminRouter.get(
+  "/applications/:applicationId/panels/yearly",
+  DashboardController.getApplicationYearlyPanelsCleaned
 );
 
 export default adminRouter;

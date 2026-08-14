@@ -4,14 +4,14 @@ import {
   Typography,
   Box,
   CircularProgress,
-  useTheme
+  useTheme,
+  Grid
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import EnergySavingsLeafOutlinedIcon from "@mui/icons-material/EnergySavingsLeafOutlined";
 import { selectedApplicationStateForAdmin } from "../../../store/authState";
 import { useRecoilValue } from "recoil";
-import { applicationPannleCleaned, GlobalCleanedPannles } from "../../../services/User.service";
+import {  getApplicationTodayPanels,getGlobalTodayPanels } from "../../../services/User.service";
 
 interface CleaningData {
   date: string;
@@ -43,13 +43,18 @@ export default function DailyEfficiencyMetrics() {
     try {
       let response;
       if (applicationId === "ALL") {
-        response = await GlobalCleanedPannles();
+        response = await getGlobalTodayPanels();
+        console.log("Global Today Panels Response:", response);
       } else {
-        response = await applicationPannleCleaned(applicationId);
+        response = await getApplicationTodayPanels(applicationId);
+        console.log(`Application ${applicationId} Today Panels Response:`, response);
       }
 
       if (response && response.data) {
-        const dataItem = Array.isArray(response.data) ? response.data[0] : response.data;
+        const dataItem = Array.isArray(response.data) && response.data.length > 0
+          ? response.data[response.data.length - 1]
+          : response.data;
+
         setMetrics(dataItem || { date: "", panelsCleaned: 0 });
       } else {
         setError("No logs captured");

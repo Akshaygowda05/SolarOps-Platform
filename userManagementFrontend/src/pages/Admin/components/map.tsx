@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { 
@@ -8,6 +9,7 @@ import {
   Typography,
   useTheme
 } from "@mui/material";
+import { fetchGateways } from "../../../services/User.service";
 
 interface Gateway {
   id: number;
@@ -19,10 +21,7 @@ interface Gateway {
   lastSeen: string;
 }
 
-interface ApiResponse {
-  success: boolean;
-  data: Gateway[];
-}
+
 
 const WORLD_TOPO_JSON = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 const MAP_SIZE = 600;
@@ -53,30 +52,41 @@ export default function VectorGatewayMap() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+
+
+useEffect(() => {
+  let isMounted = true;
+
+  const loadData = async () => {
     injectPulsingStyles();
-    
-    fetch("http://localhost:3000/api/dashboard/gateways")
-      .then((res) => {
-        if (!res.ok) throw new Error("Network response failed");
-        return res.json() as Promise<ApiResponse>;
-      })
-      .then((resData) => {
-        if (resData.success) {
-          const validCoordinates = resData.data.filter(
-            (g) => g.latitude !== 0 && g.longitude !== 0
-          );
-          setGateways(validCoordinates);
-        } else {
-          setError("API reported unsuccessful data retrieval.");
-        }
-        setLoading(false);
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+
+    try {
+      const resData = await fetchGateways();
+      
+      if (!isMounted) return;
+
+      if (resData.success) {
+        const validCoordinates = resData.data.filter(
+          (g:any) => g.latitude !== 0 && g.longitude !== 0
+        );
+        setGateways(validCoordinates);
+      } else {
+        setError("API reported unsuccessful data retrieval.");
+      }
+    } catch (err: any) {
+      if (!isMounted) return;
+      setError(err.message || "Network response failed");
+    } finally {
+      if (isMounted) setLoading(false);
+    }
+  };
+
+  loadData();
+
+  return () => {
+    isMounted = false;
+  };
+}, []);
 
   if (loading) {
     return (

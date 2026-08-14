@@ -17,7 +17,7 @@ const syncLimiter = rateLimit({
 
 
 
-syncallRouter.get('/syncAll',async (req, res) => {
+syncallRouter.post('/syncAll',authenticate, ApplicationContext,syncLimiter, async (req, res) => {
     try{
 
         await syncAllTenant();
@@ -27,6 +27,7 @@ syncallRouter.get('/syncAll',async (req, res) => {
 
     }catch(error:any){
         logger.info("Error in syncAll route: ", error);
+        res.status(500).json({ message: "Error in Sync All", error: error.message });
 
     }
 

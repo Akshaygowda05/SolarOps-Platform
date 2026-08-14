@@ -13,13 +13,12 @@ interface PanelsCleanedHistoryRow {
 }
 
 class DashboardService {
-
   // =========================================================
   // Dashboard (All Active & Pending Applications)
   // =========================================================
 
   /**
-   * Returns total, online and offline device counts.
+   * Returns total, online, and offline device counts.
    */
   static async getDashboardDeviceCounts() {
     const rows = await prisma.$queryRaw<DashboardCountsRow[]>`
@@ -97,9 +96,37 @@ class DashboardService {
 
       LEFT JOIN "RobotData" rb
         ON DATE_TRUNC('month', rb."createdAt") = month.month
+      LEFT JOIN "ChirpstackApplication" ca
+        ON ca."chirpstackId" = rb."applicationId"
+        AND ca."status" IN (${Status.ACTIVE}::"Status", ${Status.PENDING}::"Status")
 
       GROUP BY month.month
       ORDER BY month.month;
+    `;
+  }
+
+  /**
+   * Last 3 years panels cleaned (Dashboard)
+   */
+  static async getDashboardYearlyPanelsCleaned() {
+    return prisma.$queryRaw`
+      SELECT
+        year.year,
+        COALESCE(SUM(rb."panelsCleaned"), 0)::int AS "panelsCleaned"
+      FROM generate_series(
+        DATE_TRUNC('year', CURRENT_DATE) - INTERVAL '2 years',
+        DATE_TRUNC('year', CURRENT_DATE),
+        INTERVAL '1 year'
+      ) AS year
+
+      LEFT JOIN "RobotData" rb
+        ON DATE_TRUNC('year', rb."createdAt") = year.year
+      LEFT JOIN "ChirpstackApplication" ca
+        ON ca."chirpstackId" = rb."applicationId"
+        AND ca."status" IN (${Status.ACTIVE}::"Status", ${Status.PENDING}::"Status")
+
+      GROUP BY year.year
+      ORDER BY year.year;
     `;
   }
 
@@ -133,7 +160,7 @@ class DashboardService {
    * Last 5 days panels cleaned for one application.
    */
   static async getApplicationDailyPanelsCleaned(applicationId: string) {
-    return prisma.$queryRaw<PanelsCleanedHistoryRow[]>`
+    const result = await prisma.$queryRaw<PanelsCleanedHistoryRow[]>`
       SELECT
         DATE(rb."createdAt") AS date,
         SUM(rb."panelsCleaned")::int AS "panelsCleaned"
@@ -144,6 +171,8 @@ class DashboardService {
       GROUP BY DATE(rb."createdAt")
       ORDER BY DATE(rb."createdAt");
     `;
+
+    return fillMissingDates(result, 5, "panelsCleaned");
   }
 
   /**
@@ -185,8 +214,31 @@ class DashboardService {
     `;
   }
 
+  /**
+   * Yearly panels cleaned for one application.
+   */
+  static async getApplicationYearlyPanelsCleaned(applicationId: string) {
+    return prisma.$queryRaw`
+      SELECT
+        year.year,
+        COALESCE(SUM(rb."panelsCleaned"), 0)::int AS "panelsCleaned"
+      FROM generate_series(
+        DATE_TRUNC('year', CURRENT_DATE) - INTERVAL '2 years',
+        DATE_TRUNC('year', CURRENT_DATE),
+        INTERVAL '1 year'
+      ) AS year
+
+      LEFT JOIN "RobotData" rb
+        ON DATE_TRUNC('year', rb."createdAt") = year.year
+        AND rb."applicationId" = ${applicationId}
+
+      GROUP BY year.year
+      ORDER BY year.year;
+    `;
+  }
+
   // =========================================================
-  // Gateway
+  // Gateway & Applications
   // =========================================================
 
   /**
@@ -195,10 +247,6 @@ class DashboardService {
   static async getGatewayStates() {
     return prisma.gatewayState.findMany();
   }
-
-  // =========================================================
-  // Applications
-  // =========================================================
 
   /**
    * Returns all Active & Pending applications.

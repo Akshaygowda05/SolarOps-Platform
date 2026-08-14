@@ -1,7 +1,7 @@
 import { useSetRecoilState } from "recoil";
 import { selectedApplicationState } from "../store/authState";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -14,10 +14,9 @@ import {
   Select,
   MenuItem,
   FormControl,
- 
 } from "@mui/material";
 
-import type { SelectChangeEvent } from '@mui/material';
+import type { SelectChangeEvent } from "@mui/material";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AppsOutlinedIcon from "@mui/icons-material/AppsOutlined";
@@ -48,13 +47,18 @@ export default function ApplicationPage() {
   const [navigating, setNavigating] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (tenantId) {
-      fetchApplications();
-    }
-  }, [tenantId]);
 
-  const fetchApplications = async () => {
+  useEffect(() => {
+    localStorage.removeItem("selectedApplicationId");
+    setSelectedApplication(null);
+  }, [tenantId, setSelectedApplication]);
+
+  // -------------------------------------------------------------
+  // 2. FETCH APPLICATIONS
+  // -------------------------------------------------------------
+  const fetchApplications = useCallback(async () => {
+    if (!tenantId) return;
+
     try {
       setLoadingApps(true);
       setError("");
@@ -70,42 +74,51 @@ export default function ApplicationPage() {
     } finally {
       setLoadingApps(false);
     }
-  };
+  }, [tenantId]);
 
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
+
+  // -------------------------------------------------------------
+  // 3. SELECT APPLICATION & SYNC STATE
+  // Sets Recoil state + LocalStorage before routing to dashboard
+  // -------------------------------------------------------------
   const handleApplicationClick = (application: Application) => {
+    // Sync state synchronously
     setSelectedApplication(application.chirpstackId);
     localStorage.setItem("selectedApplicationId", String(application.chirpstackId));
 
     setNavigating(true);
-    setTimeout(() => {
+    
+    // Smooth context transition
+    const timer = setTimeout(() => {
       navigate("/dashboard");
-    }, 1200);
+    }, 800);
+
+    return () => clearTimeout(timer);
   };
 
+  // -------------------------------------------------------------
+  // 4. STATUS CHANGE HANDLER
+  // -------------------------------------------------------------
   const handleStatusChange = async (e: SelectChangeEvent<string>, app: Application) => {
-    e.stopPropagation(); // Stop navigation click
+    e.stopPropagation(); // Stop parent click (prevents auto navigation)
     const newStatus = e.target.value;
 
     try {
       setError("");
-      // Optimistic update
+      // Optimistic state update
       setApplications((prev) =>
         prev.map((a) => (a.id === app.id ? { ...a, status: newStatus } : a))
       );
 
-      // Hit your status change endpoint
-
-     // console.log("this is to check the id of the application",app.id)
-   const resposne =    await api.put(`/admin/application/${app.id}/status`, {
+      await api.put(`/admin/application/${app.id}/status`, {
         status: newStatus,
       });
-
-      console.log("this is to check what is happening the response",resposne)
-
-
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to update application status");
-      // Revert if API fails
+      // Revert back on failure
       fetchApplications();
     }
   };
@@ -149,7 +162,6 @@ export default function ApplicationPage() {
   }) => (
     <Stack
       direction="row"
-      
       sx={{
         flex: 1,
         minWidth: 180,
@@ -158,9 +170,8 @@ export default function ApplicationPage() {
         border: "1px solid",
         borderColor: "divider",
         backgroundColor: "background.paper",
-        spacing:1.5,
-      alignItems:"center",
-      justifyContent:"space-between"
+        alignItems: "center",
+        justifyContent: "space-between",
       }}
     >
       <Stack spacing={0}>
@@ -194,13 +205,18 @@ export default function ApplicationPage() {
 
   return (
     <Box sx={{ py: 4, px: { xs: 2, md: 4 }, maxWidth: 1100, mx: "auto" }}>
+      {/* Header & Breadcrumbs */}
       <Stack spacing={1} sx={{ mb: 4 }}>
         <Breadcrumbs separator={<ChevronRightIcon fontSize="small" />}>
           <Link
             component="button"
             underline="hover"
             color="text.secondary"
-            onClick={() => navigate("/tenants")}
+            onClick={() => {
+              localStorage.removeItem("selectedApplicationId");
+              setSelectedApplication(null);
+              navigate("/tenants");
+            }}
             sx={{ fontWeight: 600, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.04em" }}
           >
             Tenants
@@ -229,6 +245,7 @@ export default function ApplicationPage() {
         </Alert>
       )}
 
+      {/* Overview Cards */}
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 4 }}>
         <StatCard icon={<AppsOutlinedIcon fontSize="small" />} label="Total Apps" value={stats.total} accent={GREEN} />
         <StatCard
@@ -245,6 +262,7 @@ export default function ApplicationPage() {
         />
       </Stack>
 
+      {/* Applications List */}
       {loadingApps ? (
         <Box sx={{ display: "flex", py: 8, justifyContent: "center" }}>
           <CircularProgress size={28} sx={{ color: GREEN }} />
@@ -354,6 +372,7 @@ export default function ApplicationPage() {
         </Stack>
       )}
 
+      {/* Navigation Backdrop */}
       {navigating && (
         <Box
           sx={{
