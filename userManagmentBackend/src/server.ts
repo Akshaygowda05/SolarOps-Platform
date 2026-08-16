@@ -85,6 +85,7 @@ async function runGatewaySync() {
   try {
     const tenants = await listTenants();
     await Promise.all(
+      
       tenants.resultList.map(async (tenant: any) => {
         try {
           await syncAllGateway(tenant.id);

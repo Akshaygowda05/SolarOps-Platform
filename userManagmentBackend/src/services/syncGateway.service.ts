@@ -1,10 +1,12 @@
 
+import logger from "../config/logger";
 import { prisma } from "../config/primsaConfig";
 import { getGatewayGrpcServices } from "./gatewayGrpc.service";
 
 const ONLINE_THRESHOLD_MS = 30 * 60 * 1000;
 
 export const syncAllGateway = async (tenantId: string) => {
+    logger.info(`Starting gateway sync for tenant: ${tenantId}`);
     const gatewayResponse = await getGatewayGrpcServices(tenantId);
 
     for (const gateway of gatewayResponse.resultList) {
@@ -21,13 +23,15 @@ export const syncAllGateway = async (tenantId: string) => {
             isOnline,
         };
 
-        await prisma.gatewayState.upsert({
+       const result = await prisma.gatewayState.upsert({
             where: {
                 gatewayId:String(gateway.gatewayId),
             },
             update: gatewayData,
             create: gatewayData,
         });
+
+        logger.info(`Gateway sync completed for gateway: ${gateway.gatewayId}, result: ${JSON.stringify(result)}`);
     }
 };
 
