@@ -22,7 +22,7 @@ import { syncAllGateway } from "./services/syncGateway.service";
 import { listTenants } from "./services/tenantGrc.service";
 
 
-const port = 3001;
+const port = 3000;
 
 
 export const app = express();
