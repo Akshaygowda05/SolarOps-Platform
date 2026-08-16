@@ -92,10 +92,13 @@ jobs:
       # -------------------------
 
       - name: Build and push frontend Docker image
-        run: |
-          docker build \
-            -t ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:latest \
-            ./userManagementFrontend
+  run: |
+    docker build \
+      --build-arg VITE_API_URL=${{ secrets.VITE_API_URL }} \
+      -t ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:latest \
+      ./userManagementFrontend
 
-          docker push \
-            ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:latest
+    docker push \
+      ghcr.io/${{ env.IMAGE_OWNER }}/user-management-frontend:latest
+
+     
