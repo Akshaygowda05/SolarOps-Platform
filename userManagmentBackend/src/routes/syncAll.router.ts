@@ -17,7 +17,7 @@ const syncLimiter = rateLimit({
 
 
 
-syncallRouter.post('/syncAll',authenticate, ApplicationContext,syncLimiter, async (req, res) => {
+syncallRouter.post('/syncAll',syncLimiter, async (req, res) => {
     try{
 
         await syncAllTenant();
