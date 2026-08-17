@@ -50,6 +50,7 @@ export default function ApplicationPage() {
 
   useEffect(() => {
     localStorage.removeItem("selectedApplicationId");
+    localStorage.removeItem("selectedApplicationNameForAdmin");
     setSelectedApplication(null);
   }, [tenantId, setSelectedApplication]);
 
@@ -88,6 +89,7 @@ export default function ApplicationPage() {
     // Sync state synchronously
     setSelectedApplication(application.chirpstackId);
     localStorage.setItem("selectedApplicationId", String(application.chirpstackId));
+    localStorage.setItem("selectedApplicationNameForAdmin", application.name);
 
     setNavigating(true);
     
@@ -214,6 +216,7 @@ export default function ApplicationPage() {
             color="text.secondary"
             onClick={() => {
               localStorage.removeItem("selectedApplicationId");
+              localStorage.removeItem("selectedApplicationNameForAdmin");
               setSelectedApplication(null);
               navigate("/tenants");
             }}

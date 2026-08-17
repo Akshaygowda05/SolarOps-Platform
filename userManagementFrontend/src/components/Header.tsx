@@ -38,6 +38,7 @@ function Header() {
     // Automatically clear or sync application state based on active path
     if (location.pathname === "/tenants") {
       localStorage.removeItem("selectedApplicationId");
+      localStorage.removeItem("selectedApplicationNameForAdmin");
       setSelectedAppId(null);
     } else {
       const currentId = localStorage.getItem("selectedApplicationId");
@@ -77,6 +78,7 @@ function Header() {
   const logout = () => {
     localStorage.removeItem("auth");
     localStorage.removeItem("selectedApplicationId");
+    localStorage.removeItem("selectedApplicationNameForAdmin");
     setSelectedAppId(null);
     resetAuth();
     window.location.href = "/";
@@ -84,6 +86,7 @@ function Header() {
 
   const switchApplication = () => {
     localStorage.removeItem("selectedApplicationId");
+    localStorage.removeItem("selectedApplicationNameForAdmin");
     setSelectedAppId(null);
     navigate("/tenants");
   };
@@ -140,7 +143,7 @@ function Header() {
           <img src={log} alt="Logo" style={{ height: "32px", borderRadius: '4px' }} />
           <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 24, my: 'auto' }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary', display: { xs: 'none', md: 'block' } }}>
-            {user?.role === "ADMIN" ? "Admin Dashboard" : `${user?.siteName || ''}`}
+            {user?.role === "ADMIN" ? `${localStorage.getItem("selectedApplicationNameForAdmin") || "Admin Dashboard"}` : `${user?.siteName || ''}`}
           </Typography>
         </Box>
 
