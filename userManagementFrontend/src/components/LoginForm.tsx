@@ -114,7 +114,7 @@ const LoginForm = () => {
         <img
           src={logo}
           alt="Aegeus Logo"
-          style={{ width: 80, display: "block", margin: "0 auto 16px" }}
+          style={{ width: 160, display: "block", margin: "0 auto 16px" }}
         />
 
         <Typography
