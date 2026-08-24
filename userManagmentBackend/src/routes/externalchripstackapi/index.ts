@@ -10,6 +10,7 @@ import { getRedisClient, storeApplicationEvents } from '../../config/redis';
 import {  HttpStatusCode } from 'axios';
 import { MulticastController } from '../../controllers/multicast.controller';
 import { ApplicationContext } from '../../middlewares/applicationContext';
+import { DOWNLINK_COMMANDS } from '../../config/donwlinkCommands'
 const  chripstackRouter = express.Router();
 require('dotenv').config();
 
@@ -18,6 +19,11 @@ const THIRTY_MINUTES = 30 * 60 * 1000;
 interface CustomRequest extends Request {
     applicationId?: string;
 }
+
+type QueueDownlinkRequest = {
+  data: string;
+  name: string;
+};
 
 let redis = getRedisClient();
 
@@ -213,7 +219,7 @@ chripstackRouter.get(
 
 
 // toggle downlink for device(for this authneticate we dont want )
-chripstackRouter.post('/devices/:deviceId/queue', authenticate,ApplicationContext,async (req: Request, res: Response,next: NextFunction) => {
+chripstackRouter.post('/devices/:deviceId/queue', authenticate,ApplicationContext,async (req: Request<{deviceId: string}, {},QueueDownlinkRequest>, res: Response,next: NextFunction) => {
     try {
         const applicationId = (req as CustomRequest).applicationId;
 
@@ -235,7 +241,8 @@ chripstackRouter.post('/devices/:deviceId/queue', authenticate,ApplicationContex
         }
         );
         res.json(response.data);
-        await storeApplicationEvents(applicationId!, JSON.stringify({ type: 'DOWNLINK_QUEUED',name, timeStamp: new Date().toISOString() })); // this is sometihng something i need to store based on the applicationID
+        let Command = DOWNLINK_COMMANDS[data] || "unknown_command";
+        await storeApplicationEvents(applicationId!, JSON.stringify({ type: `DOWNLINK_QUEUED `, name,Command :Command, timeStamp: new Date().toISOString() })); // this is sometihng something i need to store based on the applicationID
         loggers.info(`Downlink queued for device ${deviceId}`);
     } catch (err) {
         const error: any = err;

@@ -32,8 +32,7 @@ export const ApplicationEvents = () => {
   const [events, setEvents]   = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
-  const selectedAppId =
-  useRecoilValue(selectedApplicationState);
+  const selectedAppId = useRecoilValue(selectedApplicationState);
 
 
   useEffect(() => {
@@ -122,11 +121,7 @@ export const ApplicationEvents = () => {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <code style={{ fontSize: 12, color: "var(--color-text-primary)" }}>{ev.name}</code>
-                {ev.message && (
-                  <span style={{ fontSize: 11, color: "var(--color-text-secondary)", lineHeight: 1.4 }}>
-                    {ev.message}
-                  </span>
-                )}
+               
               </div>
 
               <span style={{ fontSize: 10, color: "var(--color-text-tertiary)", whiteSpace: "nowrap", paddingTop: 2 }}>

@@ -4,43 +4,56 @@ export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-// Request Interceptor (Attaches Token)
-api.interceptors.request.use((config: any) => {
-  const auth = localStorage.getItem("auth")
-    ? JSON.parse(localStorage.getItem("auth")!)
-    : null;
+// Helper function to handle clean redirects
+const handleUnauthorizedRedirect = () => {
+  localStorage.removeItem("auth");
+  localStorage.removeItem("selectedApplicationId");
+  localStorage.removeItem("selectedApplicationNameForAdmin");
 
-  if (auth?.token) {
-    config.headers.Authorization = `Bearer ${auth.token}`;
+  if (window.location.pathname !== "/") {
+    window.location.href = "/?sessionExpired=true";
   }
+};
 
-  if (auth?.role === "ADMIN") {
-    const selectedApplicationId = localStorage.getItem("selectedApplicationId");
+// Request Interceptor (Attaches Token or Blocks Request)
+api.interceptors.request.use(
+  (config: any) => {
+    const authRaw = localStorage.getItem("auth");
+    const auth = authRaw ? JSON.parse(authRaw) : null;
 
-    if (selectedApplicationId) {
-      config.headers["x-application-id"] = selectedApplicationId;
+    // 1. Check if token is missing for non-auth requests (adjust bypass paths if needed)
+    const isPublicRoute = config.url?.includes("/login") || config.url?.includes("/public");
+    
+    if (!auth?.token && !isPublicRoute) {
+      handleUnauthorizedRedirect();
+      return Promise.reject(new Error("No authentication token found. Please log in."));
     }
-  }
 
-  return config;
-});
+    // 2. Attach Authorization Header
+    if (auth?.token) {
+      config.headers.Authorization = `Bearer ${auth.token}`;
+    }
 
-// Response Interceptor (Catches Expired JWT / 401 Unauthorized)
-api.interceptors.response.use(
-  (response) => response, // Pass successful responses through directly
-  (error) => {
-    if (error.response?.status === 401) {
-      // 1. Clear stored credentials so the user isn't stuck with an invalid token
-      localStorage.removeItem("auth");
-      localStorage.removeItem("selectedApplicationId");
-
-      // 2. Prevent infinite loops if already on the login page
-      if (window.location.pathname !== "/") {
-        // Redirect to login page and pass a query param to show an alert/toast
-        window.location.href = "/?sessionExpired=true";
+    // 3. Attach Application ID header for ADMIN role
+    if (auth?.role === "ADMIN") {
+      const selectedApplicationId = localStorage.getItem("selectedApplicationId");
+      if (selectedApplicationId) {
+        config.headers["x-application-id"] = selectedApplicationId;
       }
     }
 
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response Interceptor (Catches 401 Unauthorized from Server)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      handleUnauthorizedRedirect();
+    }
     return Promise.reject(error);
   }
 );

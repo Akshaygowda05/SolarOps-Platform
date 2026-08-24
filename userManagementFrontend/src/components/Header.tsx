@@ -139,14 +139,38 @@ function Header() {
       <Toolbar sx={{ justifyContent: "space-between", minHeight: { xs: 56, sm: 64 } }}>
         
         {/* Left Side: Logo & Header Label */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <img src={log} alt="Logo" style={{ height: "32px", borderRadius: '4px' }} />
-          <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 24, my: 'auto' }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary', display: { xs: 'none', md: 'block' } }}>
-            {user?.role === "ADMIN" ? `${localStorage.getItem("selectedApplicationNameForAdmin") || "Admin Dashboard"}` : `${user?.siteName || ''}`}
-          </Typography>
-        </Box>
-
+     {/* Left Side: Logo & Header Label */}
+<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+  <Box
+    onClick={() => {
+      // Determine default route based on role
+      const defaultRoute = user?.role === "ADMIN" ? "/tenants" : "/dashboard";
+      if (location.pathname === defaultRoute) {
+        window.location.reload(); // Refresh if already on the root home page
+      } else {
+        navigate(defaultRoute); // Navigate to main dashboard/landing page
+      }
+    }}
+    sx={{
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      transition: "transform 0.2s ease",
+      "&:hover": { transform: "scale(1.03)" },
+    }}
+  >
+    <img src={log} alt="Logo" style={{ height: "32px", borderRadius: "4px" }} />
+  </Box>
+  <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 24, my: "auto" }} />
+  <Typography
+    variant="subtitle2"
+    sx={{ fontWeight: 600, color: "text.secondary", display: { xs: "none", md: "block" } }}
+  >
+    {user?.role === "ADMIN"
+      ? `${localStorage.getItem("selectedApplicationNameForAdmin") || "Admin Dashboard"}`
+      : `${user?.siteName || ""}`}
+  </Typography>
+</Box>
         {/* Right Side: Tools & Profile */}
         <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 1.5 } }}>
           

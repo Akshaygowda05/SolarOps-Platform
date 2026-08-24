@@ -160,6 +160,8 @@ model SiteConfiguration {
   triggeringAction      Blocktriggering @default(UNICAST)
   sendTwiceAday         Boolean @default(false)
   gatewayId             String[]
+  latitude               Float?
+  longitude             Float?
 
   applicationId         String @unique
   application           ChirpstackApplication @relation(fields: [applicationId], references: [chirpstackId], onDelete: Cascade)
