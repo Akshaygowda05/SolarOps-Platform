@@ -4,6 +4,18 @@ import { getRedisClient } from "../config/redis";
 
 let redis = getRedisClient();
 
+
+interface SiteConfigData {
+    panelsGap?: string | number;
+    panelWidth?: string | number;
+    multiplicationFactor?: string | number;
+    triggeringAction?: string;
+    sendTwiceAday?: boolean;
+    gatewayId?: string | string[];
+    latitude?: string | number;
+    longitude?: string | number;
+}
+
 class siteConfiguration {
 
     async getSiteConfig(applicationId: string) {
@@ -16,7 +28,9 @@ class siteConfiguration {
                 triggeringAction: true,
                 sendTwiceAday: true,
                 isConfigured: true,
-                gatewayId: true 
+                gatewayId: true,
+                latitude: true,
+                longitude: true
 
             }
         })
@@ -46,8 +60,12 @@ class siteConfiguration {
 
     if (configData.gatewayId !== undefined)
         data.gatewayId = Array.isArray(configData.gatewayId) ? configData.gatewayId : [configData.gatewayId]; // this should be an array of strings
+    if (configData.latitude !== undefined)
+        data.latitude = parseFloat(configData.latitude);
 
- 
+    if (configData.longitude !== undefined)
+        data.longitude = parseFloat(configData.longitude);
+
     data.isConfigured = true;
 
     const updatedConfig = await prisma.siteConfiguration.upsert({

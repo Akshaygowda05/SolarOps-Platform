@@ -5,14 +5,14 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider      = "prisma-client-js"
- engineType = "client"
+  provider = "prisma-client-js"
+//  engineType = "client"
 }
 
 
 datasource db {
   provider = "postgresql"
-   url = env("DATABASE_URL")
+  url = env("DATABASE_URL")
   
 }
 
@@ -28,7 +28,10 @@ model RobotData {
   batteryDischargeCycle  Float
   batteryVoltage         Float
   applicationId          String
+  application  ChirpstackApplication@relation(fields: [applicationId], references: [chirpstackId])
   tenantId               String
+  error                  String?
+
   
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
@@ -39,8 +42,48 @@ model RobotData {
   @@index([tenantId])
 }
 
+model DeviceState {
+  id            Int      @id @default(autoincrement())
+  deviceId      String   @unique
 
-model Runningata{
+  deviceName    String
+  applicationId String
+  application   ChirpstackApplication @relation(fields: [applicationId], references: [chirpstackId])
+  tenantId      String
+
+  gatewayId String?
+
+  isOnline      Boolean  @default(false)
+  lastSeen      DateTime?
+
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([applicationId])
+  @@index([tenantId])
+}
+
+
+// model DashboardSnapshot {
+//   id Int @id @default(autoincrement())
+
+//   TotalOnlineCount Int
+
+// }
+
+model GatewayState {
+  id Int @id @default(autoincrement())
+    gatewayId  String @unique
+    gatewayName String?
+   latitude Float?
+   longitude Float?
+    isOnline Boolean
+    lastSeen DateTime?
+}
+
+
+model RunningData {
   id Int @id @default(autoincrement())
   applicationId String
   tenantId String
@@ -53,6 +96,8 @@ model Runningata{
   updatedAt DateTime @updatedAt
 
 }
+
+
 
 
 model User{
@@ -73,15 +118,20 @@ model User{
 model ChirpstackApplication {
   id             Int     @id @default(autoincrement())
   chirpstackId   String  @unique   // ChirpStack application ID
+
+  TotalDeviceCount  Int? // for safety purpose
   name           String
   description    String?
 
+  robotData     RobotData[]
+  devicesState  DeviceState[]
+
   tenantId       Int
   tenant         ChirpstackTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
   users          User[]
   siteConfiguration SiteConfiguration?
   SchedularData  SchedularData[]   
+  status  Status@default(NONE) // this is to check what is what status of that site
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -110,6 +160,8 @@ model SiteConfiguration {
   triggeringAction      Blocktriggering @default(UNICAST)
   sendTwiceAday         Boolean @default(false)
   gatewayId             String[]
+  latitude               Float?
+  longitude             Float?
 
   applicationId         String @unique
   application           ChirpstackApplication @relation(fields: [applicationId], references: [chirpstackId], onDelete: Cascade)
@@ -134,6 +186,7 @@ model SchedularData{
   updatedAt     DateTime @updatedAt  // once it is updated to the 
 }
 
+
 model  activeDeviceCount {
   id Int @id @default(autoincrement())
   applicationId String
@@ -144,6 +197,7 @@ model  activeDeviceCount {
   updatedAt DateTime @updatedAt
   @@index([applicationId])
 }
+
 
 
 enum Role {
@@ -160,6 +214,12 @@ enum Blocktriggering {
 enum JobType {
   DAILY
   ONE_TIME
+}
+
+enum Status {
+  PENDING
+  ACTIVE
+  NONE
 }
 
 

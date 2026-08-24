@@ -7,6 +7,7 @@ import MulticastService from "../services/multicast.service";
 import loggers from "../config/logger";
 import { storeApplicationEvents } from "../config/redis";
 import apiClient from "../config/apiclient";
+import { DOWNLINK_COMMANDS } from "../config/donwlinkCommands";
 
 class multicastController {
 
@@ -138,11 +139,14 @@ break;
         }
     
 
+        let command = DOWNLINK_COMMANDS[data] || "unknown_command";
+
     await storeApplicationEvents(
         applicationId,
         JSON.stringify({
             type: "GROUP_DOWNLINK",
             name: groupName || groupId,
+            Command: command,
             timeStamp: new Date().toISOString()
         })
     );

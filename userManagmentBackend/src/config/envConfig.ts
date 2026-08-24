@@ -8,6 +8,7 @@ class envconfig {
     private static MQTT_URL: string;
     private static REDIS_HOST: string;
     private static REDIS_PORT: number;
+    private static CHIRPSTACK_GRPC_URL :string
     
 
     static initialize() {
@@ -17,11 +18,19 @@ class envconfig {
         envconfig.MQTT_URL = process.env.MQTT_URL as string;
         envconfig.REDIS_HOST = process.env.REDIS_HOST as string;
         envconfig.REDIS_PORT = Number(process.env.REDIS_PORT) || 6379;
+        envconfig.CHIRPSTACK_GRPC_URL=String(process.env.CHIRPSTACK_GRPC_URL)
     }
 
     static  getChirpstackUrl(): string {
         return envconfig.CHRIPSTACK_URL;
     }
+
+    static getChirpstackGrpcUrl(){
+        return envconfig.CHIRPSTACK_GRPC_URL
+    }
+
+
+    
 
     static getChirpstackKey(): string {
         console.log("CHRIPSTACK_KEY:", envconfig.CHRIPSTACK_KEY); // Debug log to check the value

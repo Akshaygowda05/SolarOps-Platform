@@ -1,21 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { ChangeEvent } from "react";
 import { 
   Box, Typography, Button, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, Paper, Chip, 
   IconButton, Tooltip, Dialog, DialogActions, DialogContent, 
   DialogContentText, DialogTitle, TablePagination, Avatar,
-  useTheme, alpha // ADDED: useTheme for dynamic colors
+  useTheme, alpha
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 
 // Icons
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'; 
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'; 
+import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
+import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
+import ShieldIcon from '@mui/icons-material/Shield'; 
+import PersonIcon from '@mui/icons-material/Person'; 
 import { deleteUser } from "../services/User.service";
 
 interface User {
@@ -30,7 +30,7 @@ interface User {
 }
 
 function Users() {
-  const theme = useTheme(); // CHANGED: Added to access current theme (Light/Dark)
+  const theme = useTheme();
   const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -38,7 +38,22 @@ function Users() {
   const [limit, setLimit] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
-  const fetchUsers = async () => {
+  // Dynamic Theme Palette Adaptations
+  const isDark = theme.palette.mode === "dark";
+  
+  const COLORS = {
+    primary: isDark ? "#FFB74D" : "#E65100", // Adapted primary orange/amber for contrast
+    primaryLight: alpha(isDark ? "#FFB74D" : "#E65100", 0.12),
+    active: isDark ? "#7986CB" : "#3F51B5",   // Indigo
+    activeLight: alpha(isDark ? "#7986CB" : "#3F51B5", 0.15),
+    inactive: theme.palette.text.disabled,
+    inactiveLight: alpha(theme.palette.text.disabled, 0.1),
+  };
+
+  // Actual auth placeholder
+  const currentUserId = 1; 
+
+  const fetchUsers = useCallback(async () => {
     try {
       const res = await api.get("/v1/users", {
         params: { page: page + 1, limit: limit }
@@ -52,13 +67,14 @@ function Users() {
     } catch (error) {
       console.error("Failed to fetch users", error);
     }
-  };
+  }, [page, limit]);
 
   useEffect(() => {
     fetchUsers();
-  }, [page, limit]);
+  }, [fetchUsers]);
 
   const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
+  
   const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
     setLimit(parseInt(event.target.value, 10));
     setPage(0);
@@ -77,17 +93,16 @@ function Users() {
   };
 
   return (
-    // CHANGED: bgcolor changed to background.default for Dark Mode support
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "background.default", minHeight: "100vh" }}>
+    <Box sx={{ p: { xs: 2, md: 5 }, bgcolor: "background.default", minHeight: "100vh" }}>
       
       {/* --- HEADER --- */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "space-between", alignItems: "center", mb: 5 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: "text.primary", letterSpacing: '-0.5px' }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: "text.primary", letterSpacing: '-0.75px', mb: 0.5 }}>
             User Management
           </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}> {/* CHANGED: color to text.secondary */}
-            Manage permissions and account status for your team.
+          <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500 }}>
+            Configure operational profiles, security access scopes, and team deployments.
           </Typography>
         </Box>
         <Button
@@ -95,122 +110,171 @@ function Users() {
           startIcon={<AddIcon />}
           onClick={() => navigate("/users/create")}
           sx={{ 
-            borderRadius: '10px', 
+            borderRadius: '12px', 
             textTransform: "none", 
-            fontWeight: 600, 
+            fontWeight: 700, 
             px: 3, 
-            boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 4px 14px 0 rgba(0,118,255,0.39)' // CHANGED: Remove shadow in dark mode
+            py: 1.2,
+            bgcolor: COLORS.primary,
+            color: isDark ? "#000000" : "#FFFFFF",
+            '&:hover': {
+              bgcolor: alpha(COLORS.primary, 0.85),
+            },
+            boxShadow: `0 8px 20px 0 ${alpha(COLORS.primary, 0.25)}`
           }}
         >
           Create User
         </Button>
       </Box>
 
-      {/* --- TABLE --- */}
-      {/* CHANGED: bgcolor set to background.paper and shadow adjusted for dark mode */}
-      <TableContainer component={Paper} sx={{ 
-          borderRadius: 4, 
-          overflow: 'hidden', 
-          border: "1px solid", 
-          borderColor: "divider", // CHANGED: Hard color to divider token
-          boxShadow: theme.palette.mode === 'dark' ? "none" : "0 10px 30px rgba(0,0,0,0.03)", 
-          bgcolor: "background.paper" 
-        }}>
-        <Table sx={{ minWidth: 700 }}>
-          {/* CHANGED: bgcolor changed from grey.50 to action.hover for dark mode compatibility */}
-          <TableHead sx={{ bgcolor: "action.hover" }}> 
+      {/* --- TABLE CONTAINER --- */}
+      <TableContainer 
+        component={Paper} 
+        elevation={0}
+        sx={{ 
+          borderRadius: "16px", 
+          boxShadow: isDark ? `0 4px 24px ${alpha("#000", 0.4)}` : "0 4px 24px rgba(0,0,0,0.04)", 
+          border: "1px solid",
+          borderColor: "divider",
+          bgcolor: "background.paper",
+          overflow: "hidden"
+        }}
+      >
+        <Table sx={{ minWidth: 800 }}>
+          <TableHead sx={{ bgcolor: alpha(theme.palette.action.hover, 0.05) }}> 
             <TableRow>
-              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>IDENTIFIED USER</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>EMAIL</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>ACCESS ROLE</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>APPLICATION</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>STATUS</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }} align="right">ACTIONS</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', letterSpacing: '0.5px' }}>TEAM MEMBER</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', letterSpacing: '0.5px' }}>EMAIL ADDRESS</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', letterSpacing: '0.5px' }}>ROLE</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', letterSpacing: '0.5px' }}>ASSIGNED APP</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', letterSpacing: '0.5px' }}>STATUS</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', letterSpacing: '0.5px' }} align="right">ACTIONS</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
             {users.map((user) => {
               const isAdmin = user.role.toUpperCase() === "ADMIN";
+              const isMe = user.id === currentUserId; 
 
               return (
                 <TableRow 
                   key={user.id} 
-                  hover 
                   sx={{ 
-                    // CHANGED: uses theme palette alpha for Admin highlight instead of hardcoded RGBA
-                    bgcolor: isAdmin ? alpha(theme.palette.primary.main, 0.05) : "inherit" 
+                    transition: "all 0.2s ease",
+                    '&:hover': {
+                      bgcolor: alpha(COLORS.primary, 0.04),
+                    },
+                    borderBottom: "1px solid",
+                    borderColor: "divider"
                   }}
                 >
+                  {/* Identity Column */}
                   <TableCell>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                       <Avatar 
                         sx={{ 
-                          width: 32, 
-                          height: 32, 
-                          // CHANGED: grey.200 changed to action.selected for dark mode
-                          bgcolor: isAdmin ? "primary.main" : "action.selected", 
-                          color: isAdmin ? "white" : "text.secondary" // CHANGED: grey.600 to text.secondary
+                          width: 38, 
+                          height: 38, 
+                          bgcolor: isAdmin ? COLORS.primaryLight : "action.hover", 
+                          color: isAdmin ? COLORS.primary : "text.secondary",
+                          borderRadius: "10px"
                         }}
                       >
-                        {isAdmin ? <AdminPanelSettingsIcon sx={{ fontSize: 18 }} /> : <PersonOutlinedIcon sx={{ fontSize: 18 }} />}
+                        {isAdmin ? <ShieldIcon sx={{ fontSize: 20 }} /> : <PersonIcon sx={{ fontSize: 20 }} />}
                       </Avatar>
                       <Box>
-                        <Typography variant="body2" sx={{ fontWeight: isAdmin ? 700 : 500, color: isAdmin ? "primary.main" : "text.primary" }}>
-                          {user.name}
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary" }}>
+                          {user.name} {isMe && <Box component="span" sx={{ color: COLORS.primary, ml: 0.5, fontWeight: 500 }}>(You)</Box>}
                         </Typography>
                         {isAdmin && (
-                            <Typography sx={{ fontSize: '10px', fontWeight: 800, color: 'primary.main', opacity: 0.8 }}>
-                                SYSTEM PRIVILEGED
-                            </Typography>
+                          <Typography sx={{ fontSize: '9px', fontWeight: 800, color: COLORS.primary, letterSpacing: '0.5px', mt: 0.2 }}>
+                            ADMINISTRATOR
+                          </Typography>
                         )}
                       </Box>
                     </Box>
                   </TableCell>
 
-                  <TableCell sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>{user.email}</TableCell>
+                  {/* Email */}
+                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.85rem' }}>
+                    {user.email}
+                  </TableCell>
 
+                  {/* Role Badge */}
                   <TableCell>
                     <Chip 
                       label={user.role} 
                       size="small" 
-                      variant={isAdmin ? "filled" : "outlined"}
-                      color={isAdmin ? "primary" : "default"}
                       sx={{ 
-                        fontWeight: 800, 
-                        fontSize: "0.65rem",
+                        fontWeight: 700, 
+                        fontSize: "0.7rem",
                         borderRadius: '6px',
-                        // CHANGED: borderColor set to divider for dark mode
-                        borderColor: "divider",
-                        // CHANGED: color adjustment for non-admin roles
-                        color: isAdmin ? "white" : "text.secondary"
+                        textTransform: 'uppercase',
+                        bgcolor: isAdmin ? COLORS.primaryLight : "action.hover",
+                        color: isAdmin ? COLORS.primary : "text.secondary",
+                        border: "none"
                       }} 
                     />
                   </TableCell>
 
-                  <TableCell sx={{ fontWeight: 500, color: "text.primary" }}>{user.application?.name || "-"}</TableCell>
-
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {/* CHANGED: bgcolor success.main and text.disabled for dynamic themes */}
-                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: user.isActive ? "success.main" : "text.disabled" }} />
-                      <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: user.isActive ? "success.main" : "text.secondary" }}>
-                        {user.isActive ? "Active" : "Inactive"}
-                      </Typography>
-                    </Box>
+                  {/* Application */}
+                  <TableCell sx={{ fontWeight: 600, color: "text.primary", fontSize: '0.85rem' }}>
+                    {user.application?.name || <Typography component="span" sx={{ color: 'text.disabled', fontSize: '0.85rem' }}>None</Typography>}
                   </TableCell>
 
+                  {/* Status Toggle Look */}
+                  <TableCell>
+                    <Chip
+                      label={user.isActive ? "Active" : "Inactive"}
+                      size="small"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "0.7rem",
+                        borderRadius: "6px",
+                        bgcolor: user.isActive ? COLORS.activeLight : COLORS.inactiveLight,
+                        color: user.isActive ? COLORS.active : COLORS.inactive,
+                      }}
+                    />
+                  </TableCell>
+
+                  {/* Actions Panel */}
                   <TableCell align="right">
-                    <Tooltip title="Edit Permissions">
-                      <IconButton size="small" onClick={() => navigate(`/users/edit/${user.id}`)} sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete Account">
-                      <IconButton size="small" onClick={() => setDeleteId(user.id)} sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+                      <Tooltip title="Edit Permissions">
+                        <IconButton 
+                          size="small" 
+                          onClick={() => navigate(`/users/edit/${user.id}`)} 
+                          sx={{ 
+                            color: "text.secondary", 
+                            borderRadius: "8px",
+                            "&:hover": { color: COLORS.primary, bgcolor: COLORS.primaryLight } 
+                          }}
+                        >
+                          <EditTwoToneIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      
+                      <Tooltip title={isMe ? "Self-deletion disabled" : "Remove Account"}>
+                        <span>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => setDeleteId(user.id)} 
+                            disabled={isMe}
+                            sx={{ 
+                              color: "text.secondary", 
+                              borderRadius: "8px",
+                              "&:hover": { 
+                                color: isMe ? "inherit" : "error.main", 
+                                bgcolor: isMe ? "transparent" : alpha(theme.palette.error.main, 0.12)
+                              } 
+                            }}
+                          >
+                            <DeleteTwoToneIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </Box>
                   </TableCell>
                 </TableRow>
               );
@@ -226,26 +290,48 @@ function Users() {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{ borderTop: '1px solid', borderColor: 'divider', color: 'text.primary' }} // CHANGED: borderColor and color
+          sx={{ borderTop: '1px solid', borderColor: 'divider', color: 'text.secondary', fontWeight: 600 }}
         />
       </TableContainer>
 
       {/* --- DELETE DIALOG --- */}
-      {/* CHANGED: PaperProps updated to use background.paper and text.primary for Dark Mode */}
       <Dialog 
         open={Boolean(deleteId)} 
         onClose={() => setDeleteId(null)} 
-        slotProps={{ sx: { borderRadius: 3, p: 1, bgcolor: "background.paper", backgroundImage: 'none' } } as any}
+        slotProps={{
+          paper: {
+            sx: { 
+              borderRadius: "16px", 
+              p: 1.5, 
+              bgcolor: "background.paper", 
+              backgroundImage: 'none',
+              boxShadow: isDark ? `0 20px 60px ${alpha("#000", 0.6)}` : "0 20px 60px rgba(0,0,0,0.15)"
+            }
+          }
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 800, color: "text.primary" }}>Confirm Deletion</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: "text.secondary" }}>
-            Warning: Deleting this user will revoke all access. This action is permanent.
+        <DialogTitle sx={{ fontWeight: 800, color: "text.primary", px: 3 }}>Confirm Deletion</DialogTitle>
+        <DialogContent sx={{ px: 3 }}>
+          <DialogContentText sx={{ color: "text.secondary", fontWeight: 500 }}>
+            Are you sure you want to remove this account? This action terminates all assigned tokens and system permissions permanently.
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ pb: 2, px: 3 }}>
-          <Button onClick={() => setDeleteId(null)} color="inherit" sx={{ fontWeight: 600, color: "text.secondary" }}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained" sx={{ borderRadius: 2, fontWeight: 600, px: 3 }}>Delete</Button>
+        <DialogActions sx={{ pb: 2, px: 3, pt: 2, gap: 1 }}>
+          <Button 
+            onClick={() => setDeleteId(null)} 
+            color="inherit" 
+            sx={{ fontWeight: 700, textTransform: 'none', color: "text.secondary", borderRadius: "8px" }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            variant="contained" 
+            sx={{ borderRadius: "8px", fontWeight: 700, textTransform: 'none', px: 3, boxShadow: 'none' }}
+          >
+            Delete Account
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

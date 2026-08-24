@@ -8,7 +8,7 @@ export const connectSocket = (token?: string, selectedAppId?: string) => {
     socket.disconnect();
   }
 
-  socket = io("http://localhost:3000", {
+  socket = io(import.meta.env.VITE_API_URL, {
     auth: {
       token,
       selectedAppId,
@@ -26,10 +26,7 @@ export const connectSocket = (token?: string, selectedAppId?: string) => {
   return socket;
 };
 
-export const getSocket = () => {
-  if (!socket) throw new Error("Socket not initialized");
-  return socket;
-};
+export const getSocket = () => socket;
 
 export const disconnectSocket = () => {
   if (socket) {

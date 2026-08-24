@@ -46,11 +46,11 @@ async getReportWithDateRange(applicationId: string, startDate: Date, endDate: Da
             _sum: { panelsCleaned: true }
         });
 
-        totalPanelsCleaned += reportData.reduce((sum, item) => sum + (item._sum.panelsCleaned ?? 0), 0);
+        totalPanelsCleaned += reportData.reduce((sum:any, item:any) => sum + (item._sum.panelsCleaned ?? 0), 0);
 
  
         const statsLookup = new Map(
-            reportData.map(item => [item.deviceId, item._sum.panelsCleaned ?? 0])
+            reportData.map((item:any) => [item.deviceId, item._sum.panelsCleaned ?? 0])
         );
 
       
@@ -79,7 +79,8 @@ const result = await prisma.$queryRaw<{
 }[]>`
 SELECT
 SUM("panelsCleaned")::integer AS "totalPanelsCleaned",
-COUNT(DISTINCT "deviceId")::integer AS "totalRobots"
+COUNT(DISTINCT "deviceId") 
+    FILTER (WHERE "panelsCleaned" > 1)::integer AS "totalRobots"
 FROM "RobotData"
 WHERE "applicationId" = ${applicationId}
 AND "createdAt" >= ${startDate}

@@ -19,7 +19,6 @@ declare global {
       userId?: string;
       role?: Role;
       applicationId?: string;
-      TokenapplicationId?: string;
     }
   }
 }

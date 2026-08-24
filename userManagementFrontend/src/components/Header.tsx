@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
-import { useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil";
-import { authState } from "../store/authState";
+import { useRecoilState, useRecoilValue, useResetRecoilState } from "recoil";
+import { authState, selectedApplicationState } from "../store/authState";
 import log from "../assets/Aegeus-Technologies-logo.png";
 import { FiLogOut, FiAlertCircle } from "react-icons/fi";
 import { 
@@ -11,10 +11,9 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import GroupsIcon from '@mui/icons-material/Groups';
-import { ColorModeContext } from "../App";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { fetchSiteConfigStatus } from "../services/User.service";
-import { selectedApplicationState } from "../store/authState"; // or applicationState
+import { ColorModeContext } from "../context/ColorModeContext";
 
 // Animation for the "Attention" pulse
 const softPulse = keyframes`
@@ -29,45 +28,68 @@ function Header() {
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
   const navigate = useNavigate();
-  const setSelectedApplication = useSetRecoilState(
-  selectedApplicationState
-);
+  const location = useLocation();
 
-  // State for configuration status
-  const [isConfigured, setIsConfigured] = useState(true);
+  const [selectedAppId, setSelectedAppId] = useRecoilState(selectedApplicationState);
+  const [isConfigured, setIsConfigured] = useState<boolean>(true);
 
+  // 1. Route Navigation & Config Fetching
   useEffect(() => {
+    // Automatically clear or sync application state based on active path
+    if (location.pathname === "/tenants") {
+      localStorage.removeItem("selectedApplicationId");
+      localStorage.removeItem("selectedApplicationNameForAdmin");
+      setSelectedAppId(null);
+    } else {
+      const currentId = localStorage.getItem("selectedApplicationId");
+      setSelectedAppId(currentId || null);
+    }
 
-    if(user?.role === "ADMIN") return; // Admins don't need to check configuration status
+    // Check system config status
     const checkStatus = async () => {
       try {
         const response = await fetchSiteConfigStatus();
         const data = await response.data;
-        // If status is "not-configured", set state to false
         setIsConfigured(data.status === "configured");
       } catch (error) {
         console.error("Status check failed", error);
       }
     };
+
     checkStatus();
-  }, [user?.role]);
+  }, [location.pathname, user?.role, setSelectedAppId]);
+
+  // 2. Chrome Back/Forward History & Cache Restores
+  useEffect(() => {
+    const syncStateFromStorage = () => {
+      const storedAppId = localStorage.getItem("selectedApplicationId");
+      setSelectedAppId(storedAppId || null);
+    };
+
+    window.addEventListener("popstate", syncStateFromStorage);
+    window.addEventListener("pageshow", syncStateFromStorage);
+
+    return () => {
+      window.removeEventListener("popstate", syncStateFromStorage);
+      window.removeEventListener("pageshow", syncStateFromStorage);
+    };
+  }, [setSelectedAppId]);
 
   const logout = () => {
     localStorage.removeItem("auth");
     localStorage.removeItem("selectedApplicationId");
+    localStorage.removeItem("selectedApplicationNameForAdmin");
+    setSelectedAppId(null);
     resetAuth();
     window.location.href = "/";
   };
 
-  // this is a function to switch the application for an admin user
-
   const switchApplication = () => {
-  localStorage.removeItem("selectedApplicationId");
-
-  setSelectedApplication(null);
-
-  navigate("/tenants");
-};
+    localStorage.removeItem("selectedApplicationId");
+    localStorage.removeItem("selectedApplicationNameForAdmin");
+    setSelectedAppId(null);
+    navigate("/tenants");
+  };
 
   return (
     <AppBar 
@@ -83,85 +105,113 @@ function Header() {
         zIndex: 1201 
       }}
     >
-      {/* 1. TOP SYSTEM ALERT BANNER (Only shows if not configured) */}
+      {/* 1. TOP SYSTEM ALERT BANNER */}
       {!isConfigured && (
-        <Box 
-          sx={{ 
-            bgcolor: 'warning.main', 
-            color: 'warning.contrastText',
-            py: 0.5, 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center',
+        <Box
+          sx={{
+            bgcolor: "warning.main",
+            color: "warning.contrastText",
+            py: 0.5,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
             gap: 1,
-            cursor: 'pointer',
-            '&:hover': { bgcolor: 'warning.dark' }
+            cursor: user?.role === "ADMIN" ? "pointer" : "default",
+            "&:hover": {
+              bgcolor: user?.role === "ADMIN" ? "warning.dark" : "warning.main",
+            },
           }}
-          onClick={() => navigate("/site-config")}
+          onClick={
+            user?.role === "ADMIN"
+              ? () => navigate("/site-config")
+              : undefined
+          }
         >
           <FiAlertCircle size={14} />
           <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
-            SYSTEM NOT CONFIGURED: CLICK HERE TO SETUP SITE
+            {user?.role === "ADMIN"
+              ? "SYSTEM NOT CONFIGURED: CLICK HERE TO COMPLETE SETUP"
+              : "SYSTEM NOT CONFIGURED: PLEASE CONTACT YOUR ADMINISTRATOR TO COMPLETE THE SITE SETUP"}
           </Typography>
         </Box>
       )}
 
       <Toolbar sx={{ justifyContent: "space-between", minHeight: { xs: 56, sm: 64 } }}>
         
-        {/* Left Side: Logo */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <img src={log} alt="Logo" style={{ height: "32px", borderRadius: '4px' }} />
-          <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 24, my: 'auto' }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary', display: { xs: 'none', md: 'block' } }}>
-            {user?.role === "ADMIN" ? "Admin Dashboard" : `${user?.siteName}`}
-          </Typography>
-        </Box>
-
+        {/* Left Side: Logo & Header Label */}
+     {/* Left Side: Logo & Header Label */}
+<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+  <Box
+    onClick={() => {
+      // Determine default route based on role
+      const defaultRoute = user?.role === "ADMIN" ? "/tenants" : "/dashboard";
+      if (location.pathname === defaultRoute) {
+        window.location.reload(); // Refresh if already on the root home page
+      } else {
+        navigate(defaultRoute); // Navigate to main dashboard/landing page
+      }
+    }}
+    sx={{
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      transition: "transform 0.2s ease",
+      "&:hover": { transform: "scale(1.03)" },
+    }}
+  >
+    <img src={log} alt="Logo" style={{ height: "32px", borderRadius: "4px" }} />
+  </Box>
+  <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 24, my: "auto" }} />
+  <Typography
+    variant="subtitle2"
+    sx={{ fontWeight: 600, color: "text.secondary", display: { xs: "none", md: "block" } }}
+  >
+    {user?.role === "ADMIN"
+      ? `${localStorage.getItem("selectedApplicationNameForAdmin") || "Admin Dashboard"}`
+      : `${user?.siteName || ""}`}
+  </Typography>
+</Box>
         {/* Right Side: Tools & Profile */}
         <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 1.5 } }}>
           
-        {user?.role === "ADMIN" ? (
-  <Tooltip title="Switch Application">
-    <IconButton
-      onClick={switchApplication}
-      sx={{
-        color: "text.primary",
-      }}
-    >
-      <GroupsIcon />
-    </IconButton>
-  </Tooltip>
-) : (
-  <Tooltip
-    title={
-      isConfigured
-        ? "Site Configuration"
-        : "Action Required: Complete Setup"
-    }
-  >
-    <IconButton
-      onClick={() => navigate("/site-config")}
-      sx={{
-        color: !isConfigured
-          ? "warning.main"
-          : "text.primary",
-        animation: !isConfigured
-          ? `${softPulse} 2s infinite`
-          : "none",
-      }}
-    >
-      <Badge
-        color="error"
-        variant="dot"
-        invisible={isConfigured}
-      >
-        <SettingsSuggestIcon />
-      </Badge>
-    </IconButton>
-  </Tooltip>
-)}
-           
-          
+          {/* Admin Controls: Rendered ONLY when an Application is selected */}
+          {user?.role === "ADMIN" && selectedAppId && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Tooltip title="Switch Application">
+                <IconButton
+                  onClick={switchApplication}
+                  sx={{ color: "text.primary" }}
+                >
+                  <GroupsIcon />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip
+                title={
+                  isConfigured
+                    ? "Site Configuration"
+                    : "Action Required: Complete Setup"
+                }
+              >
+                <IconButton
+                  onClick={() => navigate("/site-config")}
+                  sx={{
+                    color: !isConfigured ? "warning.main" : "text.primary",
+                    animation: !isConfigured ? `${softPulse} 2s infinite` : "none",
+                  }}
+                >
+                  <Badge
+                    color="error"
+                    variant="dot"
+                    invisible={isConfigured}
+                  >
+                    <SettingsSuggestIcon />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )}
+
           {/* Theme Toggle */}
           <Tooltip title="Toggle Theme">
             <IconButton onClick={colorMode.toggleColorMode} sx={{ color: 'text.primary' }}>

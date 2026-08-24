@@ -15,6 +15,8 @@ import Schedularrouter from "./schedular.Routes";
 import tenantRoutes from "./tenant.route";
 import ApplicationRouter from "./application.route";
 import chatRouter from "./chats.routes";
+import adminRouter from "./admin.router";
+import syncallRouter from "./syncAll.router"
 
 router.use('/api',userRoutes);
 router.use('/api',chripstackRouter);
@@ -28,6 +30,9 @@ router.use('/api',Schedularrouter);
 router.use('/api',tenantRoutes);
 router.use('/api',ApplicationRouter);
 router.use('/api',chatRouter);
+router.use('/api',adminRouter,syncallRouter);
+
+
 
 
 

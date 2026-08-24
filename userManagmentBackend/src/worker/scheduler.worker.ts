@@ -12,6 +12,7 @@ import {
   sendUnicastDownlink 
 } from "../services/schedularDownlink.service";
 import { storeApplicationEvents } from "../config/redis";
+import { DOWNLINK_COMMANDS } from "../config/donwlinkCommands";
 
 // Define strict interface for job data structure
 interface SchedulerJobData {
@@ -107,11 +108,13 @@ const worker = new Worker<SchedulerJobData>(
       }
 
       // 5. Audit log successful execution to Redis
+        let command = DOWNLINK_COMMANDS[scheduler.data] || "unknown_command";
       await storeApplicationEvents(
         applicationId,
         JSON.stringify({
           type: "SCHEDULER_EXECUTED",
           name: scheduler.groupName,
+          command : command,
           timeStamp: new Date().toISOString(),
         })
       );
@@ -121,6 +124,7 @@ const worker = new Worker<SchedulerJobData>(
       loggers.error(error);
 
       // Audit log error state to Redis
+    
       await storeApplicationEvents(
         applicationId,
         JSON.stringify({

@@ -1,19 +1,29 @@
-import { useState, useMemo, createContext } from "react"; // Added hooks
-import { ThemeProvider, createTheme, CssBaseline } from "@mui/material"; // Added MUI Theme tools
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
+import { useState, useMemo } from "react";
+import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+
+// Auth & Socket Hooks
+import { useAuthInit } from "./hooks/useAuthInit";
+import { useSocketInit } from "./hooks/useSocketInit";
+
+// Context
+import { ColorModeContext } from "./context/ColorModeContext";
+
+// Core Components & Layouts
+import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import AdminApplicationGuard from "./components/AdminApplicationGuard";
+
+// Pages
+import Login from "./pages/Login";
 import Dashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashBoard";
-import { useAuthInit } from "./hooks/useAuthInit";
-import MainLayout from "./components/MainLayout";
 import Users from "./pages/Users";
 import CreateUser from "./pages/CreateUser";
 import Devices from "./pages/Devices";
 import MulticastGroup from "./pages/MulticastGorup";
 import BatteryPages from "./pages/BatteryPages";
 import Logs from "./pages/Logs";
-import { useSocketInit } from "./hooks/useSocketInit";
 import DeviceDetail from "./pages/deviceDetail";
 import { SiteConfigPage } from "./pages/siteconfigPage";
 import Report from "./pages/Report";
@@ -21,7 +31,6 @@ import EditUser from "./pages/EditUser";
 import AdminPortal from "./pages/Tenants"; 
 import AdminApplicationGuard from "./components/AdminApplicationGuard";
 import './index.css'
-import Chatbot from "./pages/chatbot";
 // so ondu context create maditivi, admele adannu useContext hook use madi consume madtivi
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
@@ -30,7 +39,6 @@ function App() {
   useAuthInit();
   useSocketInit();
 
-  // ivaga mode state create madtivi, admele adannu localStorage nalli store madtivi, app reload aagidaga theme preference save irutte
   const [mode, setMode] = useState<'light' | 'dark'>(
     (localStorage.getItem("theme") as 'light' | 'dark') || "light"
   );
@@ -45,29 +53,34 @@ function App() {
     },
   }), []);
 
-// ✅ Update the actual MUI Theme object
-const theme = useMemo(() => createTheme({
-  palette: {
-    mode,
-    primary: { main: "#169647" },
-    background: {
-      default: mode === "light" ? "#fbfcfd" : "#0f172a",
-      paper: mode === "light" ? "#ffffff" : "#1e293b",
+  const PageTitleHandler = () => {
+  usePageTitle();
+  return null;
+};
+
+  const theme = useMemo(() => createTheme({
+    palette: {
+      mode,
+      primary: { main: "#169647" },
+      background: {
+        default: mode === "light" ? "#fbfcfd" : "#0f172a",
+        paper: mode === "light" ? "#ffffff" : "#1e293b",
+      },
     },
-  },
-  typography: {
-    fontFamily: "'Open Sans', sans-serif",
-  },
-  shape: { borderRadius: 12 },
-}), [mode]);
+    typography: {
+      fontFamily: "'Open Sans', sans-serif",
+    },
+    shape: { borderRadius: 12 },
+  }), [mode]);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline /> 
         <BrowserRouter>
+        <PageTitleHandler />
           <Routes>
-            {/* public route */}
+            {/* Public */}
             <Route path="/" element={<Login />} />
 
             {/* protected routes */}
@@ -78,18 +91,6 @@ const theme = useMemo(() => createTheme({
                   <AdminApplicationGuard >
                   <MainLayout>
                     <Dashboard />
-                  </MainLayout>
-                  </AdminApplicationGuard>
-                </ProtectedRoute>
-              } />
-
-               <Route
-              path="/chat"
-              element={
-                <ProtectedRoute allowedRoles={["USER","ADMIN"]}>
-                  <AdminApplicationGuard >
-                  <MainLayout>
-                    <Chatbot/>
                   </MainLayout>
                   </AdminApplicationGuard>
                 </ProtectedRoute>

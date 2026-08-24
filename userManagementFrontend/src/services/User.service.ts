@@ -203,6 +203,101 @@ export const fetchSummary = async (startDate: string, endDate?: string) => {
 }
 
 
-export const chatbot = async (message: string) => {
-    return await api.post("/chat", { message });
+export const fetchTrueApplication = async () => {
+  const response = await api.get("/admin/applications/active");
+  return response.data;
+};
+
+
+export const fetchDashBoardCount = async() =>{
+    const response = await api.get("/dashboard/device-counts");
+    return response.data
+}
+
+export const fetchCountOfApplication = async(applocationId:string) =>{
+  const response = await api.get(`/applications/${applocationId}/device-counts`)
+  return response.data
+
+}
+
+export const activeApplicationChart = async() =>{
+    const response = await api.get("dashboard/applications")
+    return response.data
+}
+
+// =========================================================
+// Dashboard (Global) API Services
+// =========================================================
+
+export const getGlobalDeviceCounts = async () => {
+  const response = await api.get("/dashboard/device-counts");
+  return response.data;
+};
+
+export const getGlobalDailyPanels = async () => {
+  const response = await api.get("/dashboard/panels/daily");
+  return response.data;
+};
+
+export const getGlobalTodayPanels = async () => {
+  const response = await api.get("/dashboard/panels/today");
+  return response.data;
+};
+
+export const getGlobalMonthlyPanels = async () => {
+  const response = await api.get("/dashboard/panels/monthly");
+  return response.data;
+};
+
+export const getGlobalYearlyPanels = async () => {
+  const response = await api.get("/dashboard/panels/yearly");
+  return response.data;
+};
+
+// =========================================================
+// Application-Specific API Services
+// =========================================================
+
+export const getApplicationDeviceCounts = async (applicationId: string) => {
+  const response = await api.get(`/applications/${applicationId}/device-counts`);
+  return response.data;
+};
+
+export const getApplicationDailyPanels = async (applicationId: string) => {
+  const response = await api.get(`/applications/${applicationId}/panels/daily`);
+  return response.data;
+};
+
+export const getApplicationTodayPanels = async (applicationId: string) => {
+  const response = await api.get(`/applications/${applicationId}/panels/today`);
+  return response.data;
+};
+
+export const getApplicationMonthlyPanels = async (applicationId: string) => {
+  const response = await api.get(`/applications/${applicationId}/panels/monthly`);
+  return response.data;
+};
+
+export const getApplicationYearlyPanels = async (applicationId: string) => {
+  const response = await api.get(`/applications/${applicationId}/panels/yearly`);
+  return response.data;
+};
+
+
+//======================
+// gateway map api
+//=========================
+
+export const fetchGateways = async () => {
+    const response = await api.get("/dashboard/gateways");
+    return response.data;
+}
+
+//=====================
+// SYNC ALL API
+//=====================
+
+export const syncAllTenants = async () => {
+    const response = await api.post("/syncAll");
+    return response.data;
 }
