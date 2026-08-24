@@ -9,7 +9,7 @@ export async function syncAllTenant() {
     const tenants = await listTenants();
 
     await Promise.all(
-        tenants.resultList.map(async (tenant) => {
+        tenants.resultList.map(async (tenant:any) => {
             try {
                 logger.info(`Starting sync for tenant: ${tenant.id}`);
                 await getApplicationId(tenant.id);
