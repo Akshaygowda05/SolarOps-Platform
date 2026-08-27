@@ -12,7 +12,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+
   
 }
 
@@ -42,6 +42,31 @@ model RobotData {
   @@index([tenantId])
 }
 
+model ChatMessage {
+  id String @id @default(uuid())
+  role MessageRole
+  content String @db.Text
+  userId Int
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade) 
+  createdAt DateTime  @default(now())
+}
+
+model User{
+  id Int @id @default(autoincrement())
+  email String @unique
+  password String
+  name String // nameof the user 
+  siteName   String? // this is for the site name which is optional
+  role Role @default(USER)
+  application  ChirpstackApplication ? @relation(fields: [applicationId], references: [chirpstackId])
+  applicationId String?
+  isActive Boolean @default(true)
+  chatMessage ChatMessage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
 model DeviceState {
   id            Int      @id @default(autoincrement())
   deviceId      String   @unique
@@ -65,12 +90,7 @@ model DeviceState {
 }
 
 
-// model DashboardSnapshot {
-//   id Int @id @default(autoincrement())
 
-//   TotalOnlineCount Int
-
-// }
 
 model GatewayState {
   id Int @id @default(autoincrement())
@@ -100,20 +120,7 @@ model RunningData {
 
 
 
-model User{
-  id Int @id @default(autoincrement())
-  email String @unique
-  password String
-  name String // nameof the user 
-  siteName   String? // this is for the site name which is optional
-  role Role @default(USER)
-  application  ChirpstackApplication ? @relation(fields: [applicationId], references: [chirpstackId])
-  applicationId String?
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-}
 
 model ChirpstackApplication {
   id             Int     @id @default(autoincrement())
@@ -220,6 +227,12 @@ enum Status {
   PENDING
   ACTIVE
   NONE
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
 }
 
 

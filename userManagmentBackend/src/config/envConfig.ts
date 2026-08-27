@@ -8,7 +8,8 @@ class envconfig {
     private static MQTT_URL: string;
     private static REDIS_HOST: string;
     private static REDIS_PORT: number;
-    private static CHIRPSTACK_GRPC_URL :string
+    private static CHIRPSTACK_GRPC_URL :string;
+    private static LLM_API_KEY:string
     
 
     static initialize() {
@@ -19,6 +20,7 @@ class envconfig {
         envconfig.REDIS_HOST = process.env.REDIS_HOST as string;
         envconfig.REDIS_PORT = Number(process.env.REDIS_PORT) || 6379;
         envconfig.CHIRPSTACK_GRPC_URL=String(process.env.CHIRPSTACK_GRPC_URL)
+        envconfig.LLM_API_KEY= String(process.env.GROQ_API_KEY)
     }
 
     static  getChirpstackUrl(): string {
@@ -29,6 +31,9 @@ class envconfig {
         return envconfig.CHIRPSTACK_GRPC_URL
     }
 
+    static getLllmApiKey(){
+        return envconfig.LLM_API_KEY
+    }
 
     
 
