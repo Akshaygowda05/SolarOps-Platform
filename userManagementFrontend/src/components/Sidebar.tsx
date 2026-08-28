@@ -12,7 +12,7 @@ import BatteryChargingFullIcon from '@mui/icons-material/BatteryChargingFull';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PeopleIcon from '@mui/icons-material/People';
-
+import ChatIcon from '@mui/icons-material/Chat';
 function Sidebar() {
   const user = useRecoilValue(authState);
   const [selectedAppId, setSelectedAppId] = useRecoilState(selectedApplicationState);
@@ -50,6 +50,7 @@ function Sidebar() {
       <NavItem to="/devices" label="Devices" icon={<SmartToyIcon />} active={pathname === "/devices"} />
       <NavItem to="/multicast-groups" label="Multicast" icon={<GroupsIcon />} active={pathname === "/multicast-groups"} />
       <NavItem to="/Robotsbatteies" label="Batteries" icon={<BatteryChargingFullIcon />} active={pathname === "/Robotsbatteies"} />
+      <NavItem to="/chat" label="Chat" icon={<ChatIcon />} active={pathname === "/chat"} />
       <NavItem to="/logs" label="System Logs" icon={<ReceiptLongIcon />} active={pathname === "/logs"} />
       <NavItem to="/reports" label="Reports" icon={<ReceiptLongIcon />} active={pathname === "/reports"} />
     </>

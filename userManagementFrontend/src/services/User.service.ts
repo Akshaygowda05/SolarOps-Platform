@@ -301,3 +301,57 @@ export const syncAllTenants = async () => {
     const response = await api.post("/syncAll");
     return response.data;
 }
+
+//========================
+//chatbot api
+//========================
+
+export const fetchChatbotStream = async (
+  userId: number,
+  message: string,
+  onChunk: (chunk: string) => void
+) => {
+  const response = await fetch("/chat/stream", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      // Include authorization token if you use auth headers:
+      // "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify({ userId, message }),
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error("Failed to initialize stream.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n\n");
+    buffer = lines.pop() || ""; // Keep incomplete trailing line in buffer
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("data: ")) {
+        const dataStr = trimmed.replace("data: ", "");
+        if (dataStr === "[DONE]") return;
+
+        try {
+          const parsed = JSON.parse(dataStr);
+          if (parsed.content) {
+            onChunk(parsed.content); // Pass chunk to UI
+          }
+        } catch (err) {
+          console.error("Error parsing JSON chunk:", err);
+        }
+      }
+    }
+  }
+};

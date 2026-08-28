@@ -18,6 +18,7 @@ import cron from 'node-cron';
 import { syncAllGateway } from "./services/syncGateway.service";
 import { listTenants } from "./services/tenantGrc.service";
 import { syncAllTenant } from './services/syncTenant.services';
+import { checkModels } from "./services/ai.service";
 
 const port = 3000;
 
@@ -41,6 +42,9 @@ io.on("connection", (socket: any) => {
     let applicationId: string | null = null;
     const token = socket.handshake.auth?.token;
     const selectedAppId = socket.handshake.auth?.selectedAppId;
+
+
+    
 
     if (!token) {
       loggers.warn("❌ Connection rejected: Missing token.", socket.id);
@@ -106,6 +110,8 @@ async function startServer() {
   await checkDatabase();
   //activeInactiveJobs();
 
+   console.log("this is the api key to check it out ",envconfig.getLllmApiKey())
+
   app.use('/', router);
 
   app.get('/api/health', (req, res) => {
@@ -132,6 +138,8 @@ async function startServer() {
   syncAllTenant().catch((err) => {
     loggers.error("Initial tenant sync failed:", err);
   });
+
+
 
   
   cron.schedule('*/45 * * * *', async () => {

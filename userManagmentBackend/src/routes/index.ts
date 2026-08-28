@@ -16,6 +16,7 @@ import tenantRoutes from "./tenant.route";
 import ApplicationRouter from "./application.route";
 import adminRouter from "./admin.router";
 import syncallRouter from "./syncAll.router"
+import chatRouter from "./chat.routes";
 
 router.use('/api',userRoutes);
 router.use('/api',chripstackRouter);
@@ -28,7 +29,7 @@ router.use('/api',reportRouter);
 router.use('/api',Schedularrouter);
 router.use('/api',tenantRoutes);
 router.use('/api',ApplicationRouter);
-router.use('/api',adminRouter,syncallRouter);
+router.use('/api',adminRouter,syncallRouter,chatRouter);
 
 
 

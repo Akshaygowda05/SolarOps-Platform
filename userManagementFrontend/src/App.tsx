@@ -33,6 +33,7 @@ import ApplicationPage from "./pages/ApplicationPage";
 import { usePageTitle } from "./hooks/usePageTitle";
 
 import './index.css';
+import Chatbot from "./pages/Chatbot";
 
 // Layout Wrapper
 const ProtectedAppLayout = () => (
@@ -102,6 +103,7 @@ function App() {
               <Route path="/Robotsbatteies" element={<BatteryPages />} />
               <Route path="/logs" element={<Logs />} />
               <Route path="/reports" element={<Report />} />
+              <Route path="/chat" element={<Chatbot />} />
             </Route>
 
             {/* Guarded without AdminApplicationGuard */}
