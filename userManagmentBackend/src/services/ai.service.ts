@@ -9,13 +9,7 @@ export enum ChatMessageRole {
 }
 
 
- export async function checkModels() {
-    const models = await client.models.list();
 
-    console.log(
-        models.data.map((model) => model.id)
-    );
-}
 
 const client = new Groq({
     apiKey:envconfig.getLllmApiKey()
@@ -43,21 +37,49 @@ export interface ChatMessagePayload{
 
 
 
-export async function createChatStream(messages:ChatMessagePayload[],model:string = "openai/gpt-oss-20b") {
+export async function classifyIntent(
+    messages: ChatMessagePayload[],
+    model: string = "openai/gpt-oss-20b"
+) {
 
-    // this si the another message it will help to llm to think about it what kind of answer llm has to give with old messages
-  const systemPrompt: ChatMessagePayload = {
-  role: ChatMessageRole.system,
-  content:
-    "You are an IoT expert familiar with ChirpStack Network Server and its APIs. Your name is JARVIS.",
-};
+    const systemPrompt: ChatMessagePayload = {
+        role: ChatMessageRole.system,
 
+        content: `
+You are an intent classifier for AegeusConnect JARVIS.
 
+Return ONLY one of these values:
 
-   return await client.chat.completions.create({
-   model,
-   messages:[systemPrompt, ...messages],
-   stream:true
-   })
+DEVICE_STATUS
+DEVICE_ANALYTICS
+DEVICE_TRIGGERING
+GATEWAY_STATUS
+SYSTEM_HEALTH
+REPORTS
+TELEMETRY
+PLATFORM_HELP
+OUT_OF_SCOPE
+`
+    };
+
+    const response = await client.chat.completions.create({
+        model,
+
+        messages: [
+            systemPrompt,
+            ...messages
+        ],
+
+        temperature: 0
+    });
+
+    return response.choices[0].message.content;
 }
+
+export async function createAgenticResponse(){
+    
+}
+
+
+
 

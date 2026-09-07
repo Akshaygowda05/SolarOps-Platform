@@ -25,3 +25,27 @@ resolve(response.toObject());
     })
     
 }
+
+
+export async function getDevicesByNameGrpc(applicationId:string,deviceName:string) {
+    const request = new device_pb.ListDevicesRequest();
+
+    request.setApplicationId(applicationId);
+    request.setSearch(deviceName);
+
+
+    return new  Promise<device_pb.ListDevicesResponse.AsObject>((resolve,reject) =>{
+        deviceClient.list(request,getGrpcMetadata(),(error,response) =>{
+          if (error) {
+    return reject(error);
+}
+
+if (!response) {
+    return reject(new Error("No response received"));
+}
+
+resolve(response.toObject());
+        })
+    })
+    
+}

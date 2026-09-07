@@ -16,6 +16,7 @@ export function ApplicationContext(
 
     if (req.role === Role.ADMIN) {
       const applicationId = req.get("X-Application-Id");
+      console.log("this is something i also want to get to know about it",applicationId)
 
       if (!applicationId) {
         return next(

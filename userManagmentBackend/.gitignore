@@ -1,4 +1,6 @@
 node_modules
+NOTES.md
+TODAY_TASK.md
 # Keep environment variables out of version control
 .env
 

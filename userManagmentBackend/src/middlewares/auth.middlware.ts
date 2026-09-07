@@ -29,7 +29,7 @@ declare global {
 async function authenticate(req: Request, res: Response, next: NextFunction) {
     try {
         const token = req.headers.authorization?.split(' ')[1];
-       // console.log("Token from header:", token); // Debug log to check the token value
+        console.log("Token from header:", token); // Debug log to check the token value
         if (!token) {
             throw new AppError('No token provided',StatusCodes.UNAUTHORIZED);
         }

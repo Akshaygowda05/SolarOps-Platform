@@ -18,7 +18,7 @@ import cron from 'node-cron';
 import { syncAllGateway } from "./services/syncGateway.service";
 import { listTenants } from "./services/tenantGrc.service";
 import { syncAllTenant } from './services/syncTenant.services';
-import { checkModels } from "./services/ai.service";
+
 
 const port = 3000;
 

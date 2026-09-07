@@ -5,147 +5,82 @@ import { prisma } from "../config/primsaConfig";
 import { MessageRole } from "@prisma/client";
 import {
     ChatMessagePayload,
-    createChatStream,
+    ChatMessageRole,
     toChatMessageRole
 } from "../services/ai.service";
+import { createChatStream, IntetnService } from "../ai/intent/intent.service";
 
-export async function handleStreamChat(
-    req: Request,
-    res: Response
-) {
+
+const IntetnServices = new IntetnService()
+
+export async function handleStreamChat(req: Request, res: Response) {
     try {
+        const { message } = req.body;
+        const applicationId = req.applicationId;
 
-        // console.log("Chat request received");
-
-        const { userId, message } = req.body;
-
-        const numericUserId = parseInt(userId, 10);
-
-        if (!numericUserId || !message) {
+        if (!applicationId || !message) {
             throw new AppError(
                 "Valid numeric userId and message are required",
                 StatusCodes.BAD_REQUEST
             );
         }
 
-        // 1. Save user message
-        await prisma.chatMessage.create({
-            data: {
-                userId: numericUserId,
-                role: MessageRole.USER,
-                content: message
-            }
-        });
+        // 1. Optionally check intent first
 
-        // 2. Get last 10 messages
-        const rawMessages = await prisma.chatMessage.findMany({
-            where: {
-                userId: numericUserId
-            },
-            orderBy: {
-                createdAt: "desc"
-            },
-            take: 10
-        });
+        //cheap llm to get only the intent
 
-        // console.log("Raw messages:", rawMessages);
+        
+        const intent = await IntetnServices.classify(message);
+        console.log(" this is somehtin gi need to know about it Detected Intent 😎", intent);
+        // so here i am gettig the intent
+        
+        //  created the res headers 
 
-        // 3. Reverse because database gives newest first
-        const messages: ChatMessagePayload[] = rawMessages
-            .reverse()
-            .map((item) => ({
-                role: toChatMessageRole(item.role),
-                content: item.content
-            }));
-
-        // 4. Setup SSE headers
-        res.setHeader(
-            "Content-Type",
-            "text/event-stream"
-        );
-
-        res.setHeader(
-            "Cache-Control",
-            "no-cache"
-        );
-
-        res.setHeader(
-            "Connection",
-            "keep-alive"
-        );
-
-        res.setHeader(
-            "X-Accel-Buffering",
-            "no"
-        );
-
-        // Immediately send headers
+        // 2. Setup SSE headers
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        res.setHeader("X-Accel-Buffering", "no");
         res.flushHeaders();
 
-        // 5. Create Groq stream
-        const stream = await createChatStream(messages);
+        // 3. Handle Client Disconnect
+        let isClientConnected = true;
+        req.on("close", () => {
+            isClientConnected = false;
+        });
 
+        // 4. Create the LLM stream
+        const payload: ChatMessagePayload[] = [
+            { role: ChatMessageRole.user, content: message }
+        ];
+
+        const stream = await createChatStream(payload);
+        
         let fullAiResponse = "";
 
-        // 6. Stream response token by token
+        // 5. Consume stream chunks from Groq API
         for await (const chunk of stream) {
+            if (!isClientConnected) break;
 
-            const content =
-                chunk.choices[0]?.delta?.content || "";
-
-            // console.log("Chunk:", content);
-
+            const content = chunk.choices[0]?.delta?.content || "";
             if (content) {
-
                 fullAiResponse += content;
-
-                res.write(
-                    `data: ${JSON.stringify({
-                        content
-                    })}\n\n`
-                );
+                res.write(`data: ${JSON.stringify({ content })}\n\n`);
             }
         }
 
-        // console.log(
-        //     "Full AI response:",
-        //     fullAiResponse
-        // );
-
-        // 7. Save AI response
-        await prisma.chatMessage.create({
-            data: {
-                userId: numericUserId,
-                role: MessageRole.ASSISTANT,
-                content: fullAiResponse
-            }
-        });
-
-        // 8. Tell frontend streaming is finished
-        res.write(
-            `data: ${JSON.stringify({
-                done: true
-            })}\n\n`
-        );
-
-        // 9. Close connection
-        res.end();
+        // 6. Signal completion
+        if (isClientConnected) {
+            res.write(`data: ${JSON.stringify({ done: true, intent })}\n\n`);
+            res.end();
+        }
 
     } catch (error) {
-
-        // console.error(
-        //     "Chat stream error:",
-        //     error
-        // );
-
         if (!res.headersSent) {
-
             res.status(500).json({
                 message: "Failed to generate AI response"
             });
-
         } else {
-
             res.end();
         }
     }
