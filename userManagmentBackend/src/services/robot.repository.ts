@@ -71,9 +71,9 @@ class RobotRepository {
 
             // 🔒 Critical guard: skip invalid processing
             if (panelsCleaned === null) {
-                console.warn(
-                    `[SKIP] Panels not calculated for app=${device.applicationId} (config missing or invalid)`
-                );
+                // console.warn(
+                //     `[SKIP] Panels not calculated for app=${device.applicationId} (config missing or invalid)`
+                // );
                 return null;
             }
 

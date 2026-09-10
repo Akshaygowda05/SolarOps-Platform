@@ -8,7 +8,7 @@ import {
     ChatMessageRole,
     toChatMessageRole
 } from "../services/ai.service";
-import { createChatStream, IntetnService } from "../ai/intent/intent.service";
+import { createChatStream, streamAgentChat, IntetnService } from "../ai/intent/intent.service";
 
 
 const IntetnServices = new IntetnService()
@@ -26,15 +26,8 @@ export async function handleStreamChat(req: Request, res: Response) {
         }
 
         // 1. Optionally check intent first
-
-        //cheap llm to get only the intent
-
-        
         const intent = await IntetnServices.classify(message);
-        console.log(" this is somehtin gi need to know about it Detected Intent 😎", intent);
-        // so here i am gettig the intent
-        
-        //  created the res headers 
+        console.log("Detected Intent 😎:", intent);
 
         // 2. Setup SSE headers
         res.setHeader("Content-Type", "text/event-stream");
@@ -49,38 +42,30 @@ export async function handleStreamChat(req: Request, res: Response) {
             isClientConnected = false;
         });
 
-        // 4. Create the LLM stream
-        const payload: ChatMessagePayload[] = [
-            { role: ChatMessageRole.user, content: message }
-        ];
-
-        const stream = await createChatStream(payload);
-        
+        // 4. Consume agent stream (handles reasoning, tool calls, and final response)
         let fullAiResponse = "";
 
-        // 5. Consume stream chunks from Groq API
-        for await (const chunk of stream) {
+        for await (const content of streamAgentChat({ applicationId, message, intent })) {
             if (!isClientConnected) break;
 
-            const content = chunk.choices[0]?.delta?.content || "";
-            if (content) {
-                fullAiResponse += content;
-                res.write(`data: ${JSON.stringify({ content })}\n\n`);
-            }
+            fullAiResponse += content;
+            res.write(`data: ${JSON.stringify({ content })}\n\n`);
         }
 
-        // 6. Signal completion
+        // 5. Signal completion
         if (isClientConnected) {
             res.write(`data: ${JSON.stringify({ done: true, intent })}\n\n`);
             res.end();
         }
 
-    } catch (error) {
+    } catch (error: any) {
+        console.error("Error in handleStreamChat:", error);
         if (!res.headersSent) {
             res.status(500).json({
-                message: "Failed to generate AI response"
+                message: error?.message || "Failed to generate AI response"
             });
         } else {
+            res.write(`data: ${JSON.stringify({ error: error?.message || "Failed to generate AI response" })}\n\n`);
             res.end();
         }
     }
