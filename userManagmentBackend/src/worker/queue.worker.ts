@@ -23,8 +23,6 @@ const  worker = new Worker("dataQueue",async (job) =>{
                 processMqttData(topic, parsedPayload),// this for the data stroage
                 storeDataInRedis(parsedPayload), // this  to store the data in the redis to fetch the data of that particular devcies data
                 ErrorRedisServices(parsedPayload)
-
-
             ])
               
 

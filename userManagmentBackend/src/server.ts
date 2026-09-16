@@ -18,6 +18,7 @@ import cron from 'node-cron';
 import { syncAllGateway } from "./services/syncGateway.service";
 import { listTenants } from "./services/tenantGrc.service";
 import { syncAllTenant } from './services/syncTenant.services';
+import { connectKafkaProducer, getRotStatus, sendMessageToKafka } from "./services/kafka.service";
 
 const port = 3000;
 
@@ -105,6 +106,17 @@ async function runGatewaySync() {
 async function startServer() {
   await checkDatabase();
   //activeInactiveJobs();
+
+  await connectKafkaProducer();
+  await sendMessageToKafka("aegeusconnect-backend", {
+  id: 1,
+  name: "Alice",
+});
+
+await getRotStatus({
+  status:"ruuning",
+  batery:"25.4v"
+})
 
   app.use('/', router);
 
