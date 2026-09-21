@@ -1,8 +1,8 @@
-
-import { Queue,QueueEvents } from "bullmq";
+import { Queue } from "bullmq";
 import envconfig from "../config/envConfig";
 
-export const dataQueue = new Queue("dataQueue", {
+
+export const syncQueue = new Queue("syncQueue", {
   connection: {
     host: envconfig.getRedisHost(),
     port: envconfig.getRedisPort(),
@@ -12,7 +12,3 @@ export const dataQueue = new Queue("dataQueue", {
     removeOnFail: 20,
   },
 });
-
-export const dataQueueEvents = new QueueEvents("dataQueue");
-
-

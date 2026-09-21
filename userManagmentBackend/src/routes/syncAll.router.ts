@@ -19,7 +19,7 @@ const syncLimiter = rateLimit({
 
 syncallRouter.post('/syncAll',syncLimiter, async (req, res) => {
     try{
-
+  
         await syncAllTenant();
         res.status(200).json({ message: "Sync All Completed" });
 

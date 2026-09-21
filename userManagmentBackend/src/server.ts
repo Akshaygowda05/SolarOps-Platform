@@ -19,6 +19,7 @@ import { syncAllGateway } from "./services/syncGateway.service";
 import { listTenants } from "./services/tenantGrc.service";
 import { syncAllTenant } from './services/syncTenant.services';
 import { connectKafkaProducer, getRotStatus, sendMessageToKafka } from "./services/kafka.service";
+import { syncChirpstackData } from "./seed/applicationAndTenantId.repo";
 
 const port = 3000;
 
@@ -107,16 +108,6 @@ async function startServer() {
   await checkDatabase();
   //activeInactiveJobs();
 
-  await connectKafkaProducer();
-  await sendMessageToKafka("aegeusconnect-backend", {
-  id: 1,
-  name: "Alice",
-});
-
-await getRotStatus({
-  status:"ruuning",
-  batery:"25.4v"
-})
 
   app.use('/', router);
 
@@ -141,8 +132,13 @@ await getRotStatus({
     loggers.error("Initial gateway sync failed:", err);
   });
 
-  syncAllTenant().catch((err) => {
+  console.log("starting the sync data of tenant ")
+
+   syncAllTenant().catch((err) => {
     loggers.error("Initial tenant sync failed:", err);
+  });
+  syncChirpstackData().catch((err) => {
+    loggers.error("Initial sync failed:", err);
   });
 
   

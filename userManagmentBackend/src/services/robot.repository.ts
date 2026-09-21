@@ -77,6 +77,12 @@ class RobotRepository {
                 return null;
             }
 
+            console.log("DEVICE:", device);
+console.log("PANELS:", panelsCleaned);
+console.log("ODOMETER:", odometer);
+console.log("BATTERY VOLTAGE:", batteryVoltage);
+console.log("BATTERY DISCHARGE:", batteryDischarge);
+
             // ✅ Safe DB write
             return await prisma.robotData.create({
                 data: {
