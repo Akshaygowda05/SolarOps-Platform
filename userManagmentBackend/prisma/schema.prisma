@@ -108,7 +108,9 @@ model User{
   siteName   String? // this is for the site name which is optional
   role Role @default(USER)
   application  ChirpstackApplication ? @relation(fields: [applicationId], references: [chirpstackId])
+  tenant   ChirpstackTenant ? @relation(fields: [tenantId],references: [chirpstackId])
   applicationId String?
+  tenantId String?
   isActive Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -147,7 +149,7 @@ model ChirpstackTenant {
   lastSyncedAt  DateTime?
 
   applications  ChirpstackApplication[]
-
+  users          User[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

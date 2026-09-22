@@ -127,16 +127,15 @@ async function startServer() {
     res.json(events);
   });
 
-  // 1. Run immediately upon server startup
+// this section is to run only once when i will restart the server
   runGatewaySync().catch((err) => {
     loggers.error("Initial gateway sync failed:", err);
   });
 
-  console.log("starting the sync data of tenant ")
-
-   syncAllTenant().catch((err) => {
+syncAllTenant().catch((err) => {
     loggers.error("Initial tenant sync failed:", err);
   });
+
   syncChirpstackData().catch((err) => {
     loggers.error("Initial sync failed:", err);
   });
