@@ -110,9 +110,10 @@ export class UserController {
             const page = Number(req.query.page) || 1;
             const limit = Number(req.query.limit) || 10;
             const role = req.role
-            const
+            const tenant = req.tenantId
+            const application = req.applicationId
 
-            const result = await userService.getAllUsers(page, limit);
+            const result = await userService.getAllUsers(page, limit,role,tenant,application);
 
             res.json(result);
         } catch (error) {

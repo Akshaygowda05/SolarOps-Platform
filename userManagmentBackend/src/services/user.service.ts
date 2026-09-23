@@ -6,7 +6,7 @@ import AppError from '../utils/AppError';
 import { StatusCodes } from 'http-status-codes';
 import apiClient from '../config/apiclient';
 import { syncChirpstackData } from '../seed/applicationAndTenantId.repo';
-import { Role } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import loggers from '../config/logger';
 
 interface userData {
@@ -351,35 +351,83 @@ static async updateUser(
     }
   }
 
-  static async getAllUsers(page = 1, limit = 10) {
+  static async getAllUsers(page = 1, limit = 10,role:Role,tenant:string,application:string) {
     try {
       const skip = (page - 1) * limit;
 
-      const [users, total] = await Promise.all([
-        prisma.user.findMany({
-          skip,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            application: {
-              select: {
-                chirpstackId: true,
-                name: true,
-              },
+      if(role === Role.SUPERADMIN){
+        const [user,total ] = await Promise.all([
+          prisma.user.findMany({
+            skip,
+            take:limit,
+            orderBy:{
+              createdAt:"desc"
+            },include:{
+              tenant:{
+                select:{
+                  name:true
+                }
+              }
+              ,application:{
+                select:{
+                  name:true
+                }
+              }
             },
-          },
-        }),
-        prisma.user.count(),
-      ]);
+          }),
+          prisma.user.count()
+        ])
 
-      return {
-        data: users.map((user: any) => ({
+         return {
+        data: user.map((user: any) => ({
           id: user.id,
           name: user.name,
           email: user.email,
           isActive: user.isActive,
           role: user.role,
           application: user.application,
+          tenant:user.tenant
+        })),
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+      }
+
+      // if he is a tenant admin means i need to give users based on the tenant id 
+
+      if(role === Role.ADMIN){
+
+    
+        const [user ,total] = await Promise.all([
+          await prisma.user.findMany({
+            where:{
+              tenantId:tenant,
+              applicationId:application
+            },orderBy:{
+              createdAt:"desc"
+            }
+          }),
+          await prisma.user.count({
+            where:{
+              applicationId:application,
+              tenantId:tenant
+            }
+          })
+        ])
+
+         return {
+        data: user.map((user: any) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          isActive: user.isActive,
+          role: user.role,
+          application: user.application,
+         // tenant:user.tenant
         })),
         pagination: {
           total,
@@ -389,6 +437,7 @@ static async updateUser(
         },
       };
 
+      }
     } catch (error) {
       loggers.error('Error fetching global application dataset layout logs:', error);
       throw error;
