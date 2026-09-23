@@ -128,8 +128,8 @@ model ChirpstackApplication {
   robotData     RobotData[]
   devicesState  DeviceState[]
 
-  tenantId       Int
-  tenant         ChirpstackTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId       String
+  tenant         ChirpstackTenant @relation(fields: [tenantId], references: [chirpstackId], onDelete: Cascade)
   users          User[]
   siteConfiguration SiteConfiguration?
   SchedularData  SchedularData[]   

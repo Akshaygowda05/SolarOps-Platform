@@ -103,10 +103,14 @@ export class UserController {
 
     }
 
+    // this is for the admin and super admin only 
+
     static async getAllUsers(req: Request, res: Response, next: NextFunction) {
         try {
             const page = Number(req.query.page) || 1;
             const limit = Number(req.query.limit) || 10;
+            const role = req.role
+            const
 
             const result = await userService.getAllUsers(page, limit);
 
@@ -115,6 +119,8 @@ export class UserController {
             next(error);// this will pass the error to the global error handler
         }
     }
+
+    
 
     static async getUserById(req: Request, res: Response, next: NextFunction) {
         try {
@@ -128,6 +134,8 @@ export class UserController {
             next(error);
         }
     }
+
+ 
 }
 
 export default UserController;

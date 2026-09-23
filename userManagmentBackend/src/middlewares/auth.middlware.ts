@@ -11,15 +11,18 @@ interface JwtPayload {
     userId?: string;
     role?: Role;
     applicationId?: string;
+    tenantId?: string; 
 }
+
 
 declare global {
   namespace Express {
     interface Request {
       userId?: string;
       role?: Role;
-      applicationId?: string;
-      TokenapplicationId?:string
+      tenantId?: string; 
+      applicationId?: string;   
+
     }
   }
 }
@@ -42,7 +45,8 @@ async function authenticate(req: Request, res: Response, next: NextFunction) {
 
         req.userId = decode.userId;
         req.role = decode.role as Role;
-        req.TokenapplicationId = decode.applicationId;
+        req.applicationId = decode.applicationId;
+        req.tenantId = decode.tenantId;
         next();
     } catch (error) {
         res.status(500).json({ error: 'Authentication failed' });
