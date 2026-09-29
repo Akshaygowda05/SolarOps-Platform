@@ -351,7 +351,7 @@ static async updateUser(
     }
   }
 
-  static async getAllUsers(page = 1, limit = 10,role:Role,tenant:string,application:string) {
+  static async getAllUsers(page = 1, limit = 10,role:Role,tenant?:string,application?:string) {
     try {
       const skip = (page - 1) * limit;
 
@@ -401,42 +401,66 @@ static async updateUser(
 
       if(role === Role.ADMIN){
 
-    
-        const [user ,total] = await Promise.all([
-          await prisma.user.findMany({
-            where:{
-              tenantId:tenant,
-              applicationId:application
-            },orderBy:{
-              createdAt:"desc"
-            }
-          }),
-          await prisma.user.count({
-            where:{
-              applicationId:application,
-              tenantId:tenant
-            }
-          })
-        ])
+        // here tneantId is reuired right
 
-         return {
-        data: user.map((user: any) => ({
-          id: user.id,
+        // first we will get all the all the application realted to it 
+const [users, totalCount] = await Promise.all([
+  prisma.user.findMany({
+    where: {
+      tenantId: tenant,
+      application: {
+        tenantId: tenant,
+      },
+    },
+    include: {
+      application: {
+        select: {
+          name: true,
+        },
+      },
+      tenant: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    skip,
+    take:limit
+  }),
+
+  prisma.user.count({
+    where: {
+      tenantId: tenant,
+      application: {
+        tenantId: tenant,
+      },
+    },
+  }),
+]);
+
+
+
+return {
+  data:users.map((user:any) =>({
+        id: user.id,
           name: user.name,
           email: user.email,
           isActive: user.isActive,
           role: user.role,
           application: user.application,
-         // tenant:user.tenant
-        })),
-        pagination: {
-          total,
+          tenant:user.tenant
+  })),
+  pagination:{
+    totalCount,
           page,
           limit,
-          totalPages: Math.ceil(total / limit),
-        },
-      };
+          totalPages: Math.ceil(totalCount / limit),
 
+
+  }
+}
+
+        
       }
     } catch (error) {
       loggers.error('Error fetching global application dataset layout logs:', error);
