@@ -39,17 +39,22 @@ function StatCard({
     <Box
       onClick={onClick}
       sx={{
-        flex: "1 1 180px",
-        minWidth: { xs: "calc(50% - 8px)", sm: 160 },
+        width: "100%",
+        height: "100%",
+        minWidth: 0,
+        boxSizing: "border-box",
         position: "relative",
         overflow: "hidden",
-        p: { xs: 1.8, sm: 2.2 },
+        p: { xs: 1.5, sm: 2 },
         borderRadius: 2,
         bgcolor: "background.paper",
         border: "1px solid",
         borderColor: "divider",
         cursor: onClick ? "pointer" : "default",
         transition: "all 0.18s ease",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
         "&:hover": onClick ? { 
           borderColor: iconColor,
           boxShadow: `0 4px 12px ${alpha(iconColor, 0.08)}`
@@ -59,50 +64,60 @@ function StatCard({
           content: '""',
           position: "absolute",
           top: 0, left: 0, right: 0,
-          height: "4px", 
+          height: "3.5px", 
           bgcolor: iconColor, 
           borderRadius: "8px 8px 0 0",
         },
       }}
     >
       {/* Top Header Row (Title and Icon Badge) */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5, mt: 0.5 }}>
-        <Typography sx={{
-          fontSize: "0.67rem", 
-          fontWeight: 700, // Made bold and prominent
-          letterSpacing: "0.07em", 
-          textTransform: "uppercase",
-          color: "text.secondary", 
-          lineHeight: 1.3, 
-          maxWidth: "72%",
-        }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1, mb: 1, mt: 0.2 }}>
+        <Typography 
+          noWrap
+          title={title}
+          sx={{
+            fontSize: { xs: "0.62rem", sm: "0.68rem" }, 
+            fontWeight: 700,
+            letterSpacing: "0.06em", 
+            textTransform: "uppercase",
+            color: "text.secondary", 
+            lineHeight: 1.3, 
+            flex: 1,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
           {title}
         </Typography>
         
         {/* Dynamic Light Colored Icon Container */}
         <Box sx={{
-          width: 28, height: 28, borderRadius: 1.5,
-          display: "flex", alignItems: "center", justifyContent: "center",
+          width: { xs: 26, sm: 28 }, 
+          height: { xs: 26, sm: 28 }, 
+          borderRadius: 1.5,
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center",
           bgcolor: alpha(iconColor, theme.palette.mode === "dark" ? 0.2 : 0.1),
           flexShrink: 0,
         }}>
-          <Icon sx={{ fontSize: 14, color: iconColor }} />
+          <Icon sx={{ fontSize: { xs: 13, sm: 14 }, color: iconColor }} />
         </Box>
       </Box>
 
       {/* Main Metric Value Row */}
-      <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5 }}>
+      <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5, my: { xs: 0.2, sm: 0.5 } }}>
         <Typography sx={{
-          fontSize: { xs: "1.6rem", sm: "1.8rem" },
-          fontWeight: 800, // Maximized visual weight for the main inner number
+          fontSize: { xs: "1.35rem", sm: "1.7rem", md: "1.85rem" },
+          fontWeight: 800,
           color: "text.primary",
-          lineHeight: 1, 
+          lineHeight: 1.1, 
           fontVariantNumeric: "tabular-nums",
         }}>
           {typeof count === "number" ? count.toLocaleString() : count}
         </Typography>
         {unit && (
-          <Typography sx={{ fontSize: "0.75rem", color: "text.secondary", fontWeight: 700 }}>
+          <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.75rem" }, color: "text.secondary", fontWeight: 700 }}>
             {unit}
           </Typography>
         )}
@@ -110,14 +125,24 @@ function StatCard({
 
       {/* Footer Row (Trend Indicator and Subtitle) */}
       {(trendValue || subtitle) && (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.7 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.6, mt: 0.5, minWidth: 0, overflow: "hidden" }}>
           {trendValue && (
-            <Typography sx={{ fontSize: "0.7rem", fontWeight: 700, color: finalTrendColor }}>
+            <Typography sx={{ fontSize: { xs: "0.65rem", sm: "0.7rem" }, fontWeight: 700, color: finalTrendColor, flexShrink: 0 }}>
               {trendValue}
             </Typography>
           )}
           {subtitle && (
-            <Typography sx={{ fontSize: "0.7rem", color: "text.secondary", fontWeight: 600 }}>
+            <Typography 
+              noWrap
+              title={subtitle}
+              sx={{ 
+                fontSize: { xs: "0.64rem", sm: "0.7rem" }, 
+                color: "text.secondary", 
+                fontWeight: 600,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               {subtitle}
             </Typography>
           )}

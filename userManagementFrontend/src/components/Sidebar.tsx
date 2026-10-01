@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { authState, selectedApplicationState } from "../store/authState";
 import { Link, useLocation } from "react-router-dom";
-import { Box, Typography, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useTheme } from "@mui/material";
+import { Box, Typography, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useTheme, Drawer } from "@mui/material";
 
 // Icons
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -13,7 +13,12 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PeopleIcon from '@mui/icons-material/People';
 
-function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const user = useRecoilValue(authState);
   const [selectedAppId, setSelectedAppId] = useRecoilState(selectedApplicationState);
   const location = useLocation();
@@ -21,8 +26,6 @@ function Sidebar() {
 
   // -------------------------------------------------------------
   // ROUTE & HISTORY SYNC EFFECT
-  // Automatically clears selectedAppId whenever the user navigates 
-  // back to the tenants list or applications selection pages.
   // -------------------------------------------------------------
   useEffect(() => {
     const isTenantOrAppListPage = 
@@ -33,7 +36,6 @@ function Sidebar() {
       localStorage.removeItem("selectedApplicationId");
       setSelectedAppId(null);
     } else {
-      // Restore from localStorage if on an app-dependent page
       const storedAppId = localStorage.getItem("selectedApplicationId");
       if (storedAppId && storedAppId !== selectedAppId) {
         setSelectedAppId(storedAppId);
@@ -46,43 +48,28 @@ function Sidebar() {
   // 1. Centralized navigation definitions
   const renderStandardNavItems = () => (
     <>
-      <NavItem to="/dashboard" label="Dashboard" icon={<DashboardIcon />} active={pathname === "/dashboard"} />
-      <NavItem to="/devices" label="Devices" icon={<SmartToyIcon />} active={pathname === "/devices"} />
-      <NavItem to="/multicast-groups" label="Multicast" icon={<GroupsIcon />} active={pathname === "/multicast-groups"} />
-      <NavItem to="/Robotsbatteies" label="Batteries" icon={<BatteryChargingFullIcon />} active={pathname === "/Robotsbatteies"} />
-      <NavItem to="/logs" label="System Logs" icon={<ReceiptLongIcon />} active={pathname === "/logs"} />
-      <NavItem to="/reports" label="Reports" icon={<ReceiptLongIcon />} active={pathname === "/reports"} />
+      <NavItem to="/dashboard" label="Dashboard" icon={<DashboardIcon />} active={pathname === "/dashboard"} onClick={onClose} />
+      <NavItem to="/devices" label="Devices" icon={<SmartToyIcon />} active={pathname === "/devices"} onClick={onClose} />
+      <NavItem to="/multicast-groups" label="Multicast" icon={<GroupsIcon />} active={pathname === "/multicast-groups"} onClick={onClose} />
+      <NavItem to="/Robotsbatteies" label="Batteries" icon={<BatteryChargingFullIcon />} active={pathname === "/Robotsbatteies"} onClick={onClose} />
+      <NavItem to="/logs" label="System Logs" icon={<ReceiptLongIcon />} active={pathname === "/logs"} onClick={onClose} />
+      <NavItem to="/reports" label="Reports" icon={<ReceiptLongIcon />} active={pathname === "/reports"} onClick={onClose} />
     </>
   );
 
-  return (
-    <Box sx={{
-      position: "fixed",
-      top: 68,
-      left: 0,
-      height: "calc(100vh - 68px)",
-      width: "240px",
-      bgcolor: "background.paper",
-      borderRight: "1px solid",
-      borderColor: "divider",
-      display: "flex",
-      flexDirection: "column",
-      zIndex: 100,
-      transition: "all 0.3s ease",
-    }}>
-
-      <Box sx={{ flexGrow: 1, px: 2, py: 2 }}>
+  const sidebarNavContent = (
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", width: 240, bgcolor: "background.paper" }}>
+      <Box sx={{ flexGrow: 1, px: 2, py: 2, overflowY: "auto" }}>
         <List component="nav" sx={{ p: 0 }}>
-          
           {/* USER view: Always sees the standard navigation */}
           {user.role === "USER" && renderStandardNavItems()}
 
           {/* ADMIN view without selected App: Sees administrative tools */}
-          {user.role === "ADMIN" && !selectedAppId && (
+          {(user.role === "SUPERADMIN" || user.role === "ADMIN") && !selectedAppId && (
             <>
               <Typography
                 variant="caption"
-                sx={{
+                sx={{ 
                   px: 2,
                   py: 1,
                   display: "block",
@@ -94,15 +81,14 @@ function Sidebar() {
                 ADMINISTRATION
               </Typography>
 
-              <NavItem to="/admin" label="Admin Panel" icon={<AdminPanelSettingsIcon />} active={pathname === "/admin"} />
-              <NavItem to="/users" label="Manage Users" icon={<PeopleIcon />} active={pathname === "/users"} />
-              <NavItem to="/tenants" label="Admin Portal" icon={<GroupsIcon />} active={pathname === "/tenants"} />
+              <NavItem to="/admin" label="Admin Panel" icon={<AdminPanelSettingsIcon />} active={pathname === "/admin"} onClick={onClose} />
+              <NavItem to="/users" label="Manage Users" icon={<PeopleIcon />} active={pathname === "/users"} onClick={onClose} />
+              <NavItem to="/tenants" label="Admin Portal" icon={<GroupsIcon />} active={pathname === "/tenants"} onClick={onClose} />
             </>
           )}
 
           {/* ADMIN view with selected App: Sees standard features for that scope */}
-          {user.role === "ADMIN" && selectedAppId && renderStandardNavItems()}
-
+          {(user.role === "SUPERADMIN" || user.role === "ADMIN") && selectedAppId && renderStandardNavItems()}
         </List>
       </Box>
 
@@ -114,6 +100,50 @@ function Sidebar() {
       </Box>
     </Box>
   );
+
+  return (
+    <>
+      {/* Mobile Temporary Drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: "block", md: "none" },
+          "& .MuiDrawer-paper": {
+            boxSizing: "border-box",
+            width: 240,
+            bgcolor: "background.paper",
+            borderRight: "1px solid",
+            borderColor: "divider",
+          },
+        }}
+      >
+        {sidebarNavContent}
+      </Drawer>
+
+      {/* Desktop Fixed Sidebar */}
+      <Box
+        sx={{
+          position: "fixed",
+          top: { xs: 56, sm: 64 },
+          left: 0,
+          height: { xs: "calc(100vh - 56px)", sm: "calc(100vh - 64px)" },
+          width: "240px",
+          bgcolor: "background.paper",
+          borderRight: "1px solid",
+          borderColor: "divider",
+          display: { xs: "none", md: "flex" },
+          flexDirection: "column",
+          zIndex: 100,
+          transition: "all 0.3s ease",
+        }}
+      >
+        {sidebarNavContent}
+      </Box>
+    </>
+  );
 }
 
 // Sub-component for Nav Items
@@ -122,9 +152,10 @@ interface NavItemProps {
   label: string;
   icon: React.ReactNode;
   active: boolean;
+  onClick?: () => void;
 }
 
-function NavItem({ to, label, icon, active }: NavItemProps) {
+function NavItem({ to, label, icon, active, onClick }: NavItemProps) {
   const theme = useTheme();
 
   return (
@@ -132,6 +163,7 @@ function NavItem({ to, label, icon, active }: NavItemProps) {
       <ListItemButton
         component={Link}
         to={to}
+        onClick={onClick}
         sx={{
           borderRadius: 2,
           py: 1.2,

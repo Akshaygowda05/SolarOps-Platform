@@ -34,8 +34,8 @@ export default function ActiveInactiveStatusChart() {
 
   // --- Optimized Proportions for High-Density Scaling ---
   const W = 500;
-  const H = 220;
-  const PAD = { l: 45, r: 20, t: 25, b: 35 };
+  const H = 200;
+  const PAD = { l: 42, r: 16, t: 24, b: 30 };
   const chartW = W - PAD.l - PAD.r;
   const chartH = H - PAD.t - PAD.b;
 
@@ -68,37 +68,41 @@ export default function ActiveInactiveStatusChart() {
 
   if (loading)
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexGrow: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexGrow: 1, minHeight: 200 }}>
         <CircularProgress size={32} sx={{ color: BRAND_GREEN }} />
       </Box>
     );
 
   return (
-    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+    <Box sx={{ width: '100%', height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
         <Box>
-          <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.3 }}>
-            Battery Discharge
+          <Typography sx={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.2 }}>
+            Today's Avg Discharge
           </Typography>
           {todayVal !== null && (
-            <Typography sx={{ fontSize: '1.6rem', fontWeight: 700, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
-              {todayVal}
+            <Typography sx={{ fontSize: { xs: '1.35rem', sm: '1.6rem' }, fontWeight: 700, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
+              {todayVal}%
             </Typography>
           )}
           {diff !== null && (
-            <Typography sx={{ fontSize: '0.75rem', color: parseFloat(diff) >= 0 ? BRAND_ORANGE : BRAND_GREEN, mt: 0.5, fontWeight: 500 }}>
-              {parseFloat(diff) >= 0 ? '↑' : '↓'} {Math.abs(parseFloat(diff))} vs yesterday
+            <Typography sx={{ fontSize: '0.72rem', color: parseFloat(diff) >= 0 ? BRAND_ORANGE : BRAND_GREEN, mt: 0.5, fontWeight: 600 }}>
+              {parseFloat(diff) >= 0 ? '↑' : '↓'} {Math.abs(parseFloat(diff))}% vs yesterday
             </Typography>
           )}
         </Box>
-        <Box sx={{ fontSize: '0.7rem', background: BRAND_GREEN, color: '#fff', px: '10px', py: '3px', borderRadius: '20px', fontWeight: 600 }}>
+        <Box sx={{ fontSize: '0.7rem', background: BRAND_GREEN, color: '#fff', px: 1.2, py: 0.4, borderRadius: '20px', fontWeight: 600 }}>
           Live
         </Box>
       </Box>
 
       {/* Responsive Graph Container */}
-      <Box sx={{ width: '100%', flexGrow: 1, my: 1 }}>
-        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
+      <Box sx={{ width: '100%', flexGrow: 1, minHeight: 0, my: 0.5, display: 'flex', alignItems: 'center' }}>
+        <svg 
+          viewBox={`0 0 ${W} ${H}`} 
+          preserveAspectRatio="xMidYMid meet"
+          style={{ width: '100%', height: 'auto', maxHeight: 220, display: 'block' }}
+        >
           <defs>
             <linearGradient id="batt-area" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={BRAND_GREEN} stopOpacity="0.22" />
@@ -110,7 +114,7 @@ export default function ActiveInactiveStatusChart() {
           {gridYs.map(({ v, y }) => (
             <g key={v}>
               <line x1={PAD.l} x2={W - PAD.r} y1={y} y2={y} stroke={theme.palette.divider} strokeWidth="0.75" strokeDasharray="3 3" />
-              <text x={PAD.l - 8} y={y + 3} fontSize="11" fill={theme.palette.text.secondary} textAnchor="end" fontFamily={theme.typography.fontFamily}>
+              <text x={PAD.l - 8} y={y + 3.5} fontSize="11" fill={theme.palette.text.secondary} textAnchor="end" fontFamily={theme.typography.fontFamily}>
                 {v}
               </text>
             </g>
@@ -139,7 +143,7 @@ export default function ActiveInactiveStatusChart() {
           
           {/* X-Axis Labels */}
           {points.map((p, i) => (
-            <text key={i} x={p.x} y={H - 12} fontSize="11" fill={p.isToday ? BRAND_ORANGE : theme.palette.text.secondary} textAnchor="middle" fontWeight={p.isToday ? 600 : 400} fontFamily={theme.typography.fontFamily}>
+            <text key={i} x={p.x} y={H - 8} fontSize="11" fill={p.isToday ? BRAND_ORANGE : theme.palette.text.secondary} textAnchor="middle" fontWeight={p.isToday ? 600 : 400} fontFamily={theme.typography.fontFamily}>
               {p.isToday ? 'Today' : p.dayLabel}
             </text>
           ))}
@@ -147,9 +151,9 @@ export default function ActiveInactiveStatusChart() {
       </Box>
 
       {/* Legend Block */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ width: 12, height: 3, background: BRAND_GREEN, borderRadius: '2px' }} />
-        <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', fontWeight: 500 }}>Avg discharge</Typography>
+        <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', fontWeight: 500 }}>Avg discharge (%)</Typography>
       </Box>
     </Box>
   );

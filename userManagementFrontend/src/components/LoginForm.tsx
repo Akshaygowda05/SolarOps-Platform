@@ -65,7 +65,7 @@ const LoginForm = () => {
 
       setPassword("");
 
-      if (role === "ADMIN") {
+      if (role === "SUPERADMIN" || role === "ADMIN") {
         navigate("/admin");
         localStorage.removeItem("selectedApplicationId");
         setSelectedApplication(null);

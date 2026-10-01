@@ -21,7 +21,7 @@ api.interceptors.request.use(
     const authRaw = localStorage.getItem("auth");
     const auth = authRaw ? JSON.parse(authRaw) : null;
 
-    // 1. Check if token is missing for non-auth requests (adjust bypass paths if needed)
+   
     const isPublicRoute = config.url?.includes("/login") || config.url?.includes("/public");
     
     if (!auth?.token && !isPublicRoute) {
@@ -29,18 +29,34 @@ api.interceptors.request.use(
       return Promise.reject(new Error("No authentication token found. Please log in."));
     }
 
-    // 2. Attach Authorization Header
+   
     if (auth?.token) {
       config.headers.Authorization = `Bearer ${auth.token}`;
     }
 
-    // 3. Attach Application ID header for ADMIN role
-    if (auth?.role === "ADMIN") {
-      const selectedApplicationId = localStorage.getItem("selectedApplicationId");
-      if (selectedApplicationId) {
-        config.headers["x-application-id"] = selectedApplicationId;
-      }
-    }
+  
+  if (auth?.role === "SUPERADMIN") {
+  const selectedTenantId = localStorage.getItem("selectedTenantId");
+  const selectedApplicationId = localStorage.getItem("selectedApplicationId");
+
+  if (selectedTenantId && !selectedApplicationId) {
+    config.headers["X-Tenant-Id"] = selectedTenantId;
+  }
+
+  if (selectedTenantId && selectedApplicationId) {
+    config.headers["X-Tenant-Id"] = selectedTenantId;
+    config.headers["X-Application-Id"] = selectedApplicationId;
+  }
+}
+
+if (auth?.role === "ADMIN") {
+  const selectedApplicationId =
+    localStorage.getItem("selectedApplicationId");
+
+  if (selectedApplicationId) {
+    config.headers["X-Application-Id"] = selectedApplicationId;
+  }
+}
 
     return config;
   },

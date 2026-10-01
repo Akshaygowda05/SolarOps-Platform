@@ -50,22 +50,23 @@ function DeviceModal({
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="md" // Increased width to accommodate table columns
+      maxWidth="md"
       sx={{
         "& .MuiPaper-root": {
-          borderRadius: 2.5,
+          borderRadius: { xs: 2, sm: 2.5 },
           boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
-          maxHeight: { xs: "88vh", sm: "80vh" },
-          backgroundImage: "none", // Removes the gray overlay in MUI Dark Mode
+          m: { xs: 1.5, sm: 2 },
+          maxHeight: { xs: "90vh", sm: "80vh" },
+          backgroundImage: "none",
         },
       }}
     >
       {/* Header */}
       <DialogTitle
         sx={{
-          px: 3,
-          pt: 2.5,
-          pb: 2,
+          px: { xs: 2, sm: 3 },
+          pt: { xs: 2, sm: 2.5 },
+          pb: 1.5,
           borderBottom: "1px solid",
           borderColor: "divider",
           display: "flex",
@@ -74,7 +75,7 @@ function DeviceModal({
         }}
       >
         <Box>
-          <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "text.primary" }}>
+          <Typography sx={{ fontWeight: 700, fontSize: { xs: "1rem", sm: "1.1rem" }, color: "text.primary" }}>
             {title}
           </Typography>
           <Typography sx={{ fontSize: "0.75rem", color: "text.secondary", mt: 0.2 }}>
@@ -94,7 +95,7 @@ function DeviceModal({
       </DialogTitle>
 
       {/* Search Section */}
-      <Box sx={{ px: 3, py: 2, bgcolor: "background.paper" }}>
+      <Box sx={{ px: { xs: 2, sm: 3 }, py: 1.5, bgcolor: "background.paper" }}>
         <TextField
           fullWidth
           size="small"
@@ -109,7 +110,7 @@ function DeviceModal({
                 </InputAdornment>
               ),
               sx: {
-                fontSize: "0.875rem",
+                fontSize: "0.85rem",
                 borderRadius: 2,
                 bgcolor: "action.hover",
               },
@@ -120,20 +121,20 @@ function DeviceModal({
 
       {/* Table Content */}
       <DialogContent sx={{ p: 0 }}>
-        <TableContainer sx={{ maxHeight: 400 }}>
-          <Table stickyHeader size="medium">
+        <TableContainer sx={{ maxHeight: { xs: 340, sm: 420 }, overflowX: "auto" }}>
+          <Table stickyHeader size="small" sx={{ minWidth: 500 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, bgcolor: "background.paper" }}>Device Name</TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: "background.paper" }}>DevEUI</TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: "background.paper" }}>Description</TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: "background.paper" }} align="right">Status</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: "background.paper", px: { xs: 1.5, sm: 2 }, py: 1.2 }}>Device Name</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: "background.paper", px: { xs: 1.5, sm: 2 }, py: 1.2 }}>DevEUI</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: "background.paper", px: { xs: 1.5, sm: 2 }, py: 1.2 }}>Description</TableCell>
+                <TableCell sx={{ fontWeight: 600, bgcolor: "background.paper", px: { xs: 1.5, sm: 2 }, py: 1.2 }} align="right">Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} sx={{ py: 8, textAlign: "center" }}>
+                  <TableCell colSpan={4} sx={{ py: 6, textAlign: "center" }}>
                     <Typography sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                       {search ? "No devices match your search." : "No devices found."}
                     </Typography>
@@ -146,16 +147,16 @@ function DeviceModal({
                     hover 
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
-                    <TableCell sx={{ fontWeight: 500 }}>
+                    <TableCell sx={{ fontWeight: 500, px: { xs: 1.5, sm: 2 }, py: 1.2 }}>
                       {device.name || "Unnamed Device"}
                     </TableCell>
-                    <TableCell sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}>
+                    <TableCell sx={{ fontFamily: "monospace", fontSize: "0.8rem", px: { xs: 1.5, sm: 2 }, py: 1.2 }}>
                       {device.devEui}
                     </TableCell>
-                    <TableCell sx={{ color: "text.secondary", fontSize: "0.85rem" }}>
+                    <TableCell sx={{ color: "text.secondary", fontSize: "0.85rem", px: { xs: 1.5, sm: 2 }, py: 1.2 }}>
                       {device.description || "-"}
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ px: { xs: 1.5, sm: 2 }, py: 1.2 }}>
                       <Box
                         sx={{
                           display: "inline-block",

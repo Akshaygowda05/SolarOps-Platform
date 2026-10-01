@@ -74,7 +74,7 @@ class SchedulerService {
 
   async getScheduler(applicationId: string) {
     const result = await prisma.chirpstackApplication.findUnique({
-      where: { chirpstackId: applicationId },
+      where: { chirpstackAppId: applicationId },
       include: { SchedularData: true },
     });
 
@@ -97,7 +97,6 @@ class SchedulerService {
 
     const stringId = String(id);
 
-    // Remove from queue FIRST — if this throws, DB record stays intact
     try {
       if (existing.jobType === JobType.ONE_TIME) {
         await jobSchedulerService.removeOneTimeJob(stringId);

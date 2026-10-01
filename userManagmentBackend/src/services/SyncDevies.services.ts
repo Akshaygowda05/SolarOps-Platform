@@ -19,7 +19,7 @@ export const syncAllDevices = async (
 
     try {
 const isApplicationValid = await prisma.chirpstackApplication.findUnique({
-            where: { chirpstackId: applicationId },
+            where: { chirpstackAppId: applicationId },
             select:{
                 status:true
             }
@@ -45,7 +45,7 @@ const isApplicationValid = await prisma.chirpstackApplication.findUnique({
                 offset
             );
             await prisma.chirpstackApplication.update({
-                where: { chirpstackId: applicationId },
+                where: { chirpstackAppId: applicationId },
                 data: { TotalDeviceCount: devices.totalCount },
             })
 

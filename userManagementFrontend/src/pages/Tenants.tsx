@@ -21,7 +21,7 @@ import { api } from "../services/api";
 
 interface Tenant {
   id: number;
-  chirpstackId: string;
+  chirpstackTenantId: string;
   name: string;
   description: string | null;
   isActive: boolean;
@@ -47,6 +47,7 @@ export default function AdminPortal() {
   useEffect(() => {
     resetSelectedApplication();
     localStorage.removeItem("selectedApplicationId");
+    localStorage.removeItem("selectedTenantId");
     fetchTenants();
   }, [resetSelectedApplication]);
 
@@ -71,6 +72,8 @@ export default function AdminPortal() {
   };
 
   const handleTenantClick = (chirpstackId: string) => {
+
+    localStorage.setItem("selectedTenantId",chirpstackId);
     navigate(`/admin/tenants/${chirpstackId}/applications`);
   };
 
@@ -231,7 +234,7 @@ export default function AdminPortal() {
           {tenants.map((tenant) => (
             <Box
               key={tenant.id}
-              onClick={() => handleTenantClick(tenant.chirpstackId)}
+              onClick={() => handleTenantClick(tenant.chirpstackTenantId)}
               sx={{
                 display: "flex",
                 alignItems: "center",

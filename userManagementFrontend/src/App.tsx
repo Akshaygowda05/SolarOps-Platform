@@ -106,7 +106,7 @@ function App() {
 
             {/* Guarded without AdminApplicationGuard */}
             <Route element={
-              <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
+              <ProtectedRoute allowedRoles={["USER","SUPERADMIN"]}>
                 <MainLayout>
                   <Outlet />
                 </MainLayout>
@@ -118,7 +118,7 @@ function App() {
 
             {/* Admin-Only Routes */}
             <Route element={
-              <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
                 <MainLayout>
                   <Outlet />
                 </MainLayout>

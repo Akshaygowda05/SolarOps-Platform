@@ -37,8 +37,8 @@ export default function CleaningHistoryChart() {
 
   // --- Optimized SVG Dimensions for Beautiful Scaling ---
   const W = 500;
-  const H = 220;
-  const PAD = { l: 45, r: 15, t: 25, b: 35 };
+  const H = 200;
+  const PAD = { l: 46, r: 16, t: 24, b: 30 };
   const chartH = H - PAD.t - PAD.b;
 
   const maxVal = Math.max(...chartData.map((d) => d.totalCleaned ?? 0), 1);
@@ -57,40 +57,44 @@ export default function CleaningHistoryChart() {
 
   if (loading)
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexGrow: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexGrow: 1, minHeight: 200 }}>
         <CircularProgress size={32} sx={{ color: BRAND_GREEN }} />
       </Box>
     );
 
   return (
-    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+    <Box sx={{ width: '100%', height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
         <Box>
-          <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.3 }}>
-            Cleaning History
+          <Typography sx={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.2 }}>
+            Total Cleaned
           </Typography>
-          <Typography sx={{ fontSize: '1.6rem', fontWeight: 700, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
+          <Typography sx={{ fontSize: { xs: '1.35rem', sm: '1.6rem' }, fontWeight: 700, lineHeight: 1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
             {total.toLocaleString()}
           </Typography>
           {diff !== null && (
-            <Typography sx={{ fontSize: '0.75rem', color: diff >= 0 ? BRAND_GREEN : BRAND_ORANGE, mt: 0.5, fontWeight: 500 }}>
+            <Typography sx={{ fontSize: '0.72rem', color: diff >= 0 ? BRAND_GREEN : BRAND_ORANGE, mt: 0.5, fontWeight: 600 }}>
               {diff >= 0 ? '↑' : '↓'} {Math.abs(diff).toLocaleString()} panels today
             </Typography>
           )}
         </Box>
-        <Box sx={{ fontSize: '0.7rem', background: BRAND_ORANGE, color: '#fff', px: '10px', py: '3px', borderRadius: '20px', fontWeight: 600 }}>
+        <Box sx={{ fontSize: '0.7rem', background: BRAND_ORANGE, color: '#fff', px: 1.2, py: 0.4, borderRadius: '20px', fontWeight: 600 }}>
           6 days
         </Box>
       </Box>
 
       {/* Main SVG Render Engine */}
-      <Box sx={{ width: '100%', flexGrow: 1, my: 1 }}>
-        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
+      <Box sx={{ width: '100%', flexGrow: 1, minHeight: 0, my: 0.5, display: 'flex', alignItems: 'center' }}>
+        <svg 
+          viewBox={`0 0 ${W} ${H}`} 
+          preserveAspectRatio="xMidYMid meet"
+          style={{ width: '100%', height: 'auto', maxHeight: 220, display: 'block' }}
+        >
           {/* Grid lines */}
           {gridLines.map(({ label, y }) => (
             <g key={label}>
               <line x1={PAD.l} x2={W - PAD.r} y1={y} y2={y} stroke={theme.palette.divider} strokeWidth="0.75" strokeDasharray="3 3" />
-              <text x={PAD.l - 8} y={y + 3} fontSize="11" fill={theme.palette.text.secondary} textAnchor="end" fontFamily={theme.typography.fontFamily}>
+              <text x={PAD.l - 8} y={y + 3.5} fontSize="11" fill={theme.palette.text.secondary} textAnchor="end" fontFamily={theme.typography.fontFamily}>
                 {label.toLocaleString()}
               </text>
             </g>
@@ -110,7 +114,7 @@ export default function CleaningHistoryChart() {
               <g key={i}>
                 <rect x={x} y={y} width={barW} height={Math.max(barH, 2)} rx="4" fill={fill} opacity={opacity} />
                 
-                {/* Value labels (Only display if value > 0 to prevent baseline clustering) */}
+                {/* Value labels */}
                 {value > 0 && (
                   <text x={cx} y={y - 6} fontSize="11" fill={d.isToday ? BRAND_ORANGE : theme.palette.text.primary} textAnchor="middle" fontWeight={600} fontFamily={theme.typography.fontFamily}>
                     {value.toLocaleString()}
@@ -118,7 +122,7 @@ export default function CleaningHistoryChart() {
                 )}
                 
                 {/* Bottom X-axis Date Labels */}
-                <text x={cx} y={H - 12} fontSize="11" fill={d.isToday ? BRAND_ORANGE : theme.palette.text.secondary} textAnchor="middle" fontWeight={d.isToday ? 600 : 400} fontFamily={theme.typography.fontFamily}>
+                <text x={cx} y={H - 8} fontSize="11" fill={d.isToday ? BRAND_ORANGE : theme.palette.text.secondary} textAnchor="middle" fontWeight={d.isToday ? 600 : 400} fontFamily={theme.typography.fontFamily}>
                   {d.label}
                 </text>
               </g>
@@ -128,7 +132,7 @@ export default function CleaningHistoryChart() {
       </Box>
 
       {/* Legend Block */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider', flexWrap: 'wrap' }}>
         {[{ color: BRAND_GREEN, label: 'History' }, { color: BRAND_ORANGE, label: 'Today' }].map(({ color, label }) => (
           <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Box sx={{ width: 10, height: 10, background: color, borderRadius: '3px' }} />

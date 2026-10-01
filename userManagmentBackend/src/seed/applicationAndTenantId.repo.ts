@@ -38,17 +38,18 @@ export async function syncChirpstackData() {
         const tenantChunks = chunkData(allTenants, 500);
 
         for (const chunk of tenantChunks) {
+        
             const now = new Date();
 
             await prisma.$executeRaw`
-        INSERT INTO "ChirpstackTenant" ("chirpstackId", "name", "description", "isActive", "lastSyncedAt")
+        INSERT INTO "ChirpstackTenant" ("chirpstackTenantId", "name", "description", "isActive", "lastSyncedAt", "updatedAt")
         VALUES ${Prisma.join(
                 chunk.map(
                     (t: any) =>
-                        Prisma.sql`(${t.id}, ${t.name || ""}, ${t.description || ""}, false, ${now})`
+                        Prisma.sql`(${t.id}, ${t.name || ""}, ${t.description || ""}, false, ${now}, ${now})`
                 )
             )}
-        ON CONFLICT ("chirpstackId") 
+        ON CONFLICT ("chirpstackTenantId") 
         DO UPDATE SET 
           "name" = EXCLUDED."name",
           "description" = EXCLUDED."description",
@@ -61,24 +62,29 @@ export async function syncChirpstackData() {
         // 3. Fetch mapped DB IDs for tenant association
         const dbTenants = await prisma.chirpstackTenant.findMany({
             where: {
-                chirpstackId: {
+                chirpstackTenantId: {
                     in: allTenants.map((t) => t.id),
                 },
             },
             select: {
                 id: true,
-                chirpstackId: true,
+                chirpstackTenantId: true,
             },
         });
 
+         console.log("i need to check what is going wrong here and why it is not working😎😎😎😎😎😎",dbTenants)
+
         const tenantMap = new Map<string, number>(
-            dbTenants.map((t) => [t.chirpstackId, t.id])
+            dbTenants.map((t) => [t.chirpstackTenantId, t.id])
         );
+
+        console.log("i need to check map what is there inside😎😎😎😎😎😎",tenantMap)
 
         // 4. Fetch and Sync Applications in Bulk per Tenant
         for (const tenant of allTenants) {
-            const dbTenantId = tenantMap.get(tenant.id);
-            if (!dbTenantId) continue;
+            console.log("this i need to get all the deviceId here to work on the device state and to get the application id and tenant id",tenant)
+            // const dbTenantId = tenantMap.get(tenant.id);
+            // if (!dbTenantId) continue;
 
             let appOffset = 0;
             const tenantApps: any[] = [];
@@ -87,6 +93,8 @@ export async function syncChirpstackData() {
                 const appResponse = await apiClient.get(
                     `/api/applications?tenantId=${tenant.id}&limit=${limit}&offset=${appOffset}`
                 );
+
+                console.log("this response i nened to check what is going wrong here and why it is not working😎😎😎😎😎😎",appResponse.data)
 
                 const applications = appResponse.data?.result || [];
                 tenantApps.push(...applications);
@@ -102,17 +110,19 @@ export async function syncChirpstackData() {
                 const appChunks = chunkData(tenantApps, 500);
 
                 for (const appChunk of appChunks) {
+
+                    console.log("this i need to check what went wrong here and why it is not working😎",appChunk)
                     const now = new Date();
 
                     await prisma.$executeRaw`
-            INSERT INTO "ChirpstackApplication" ("chirpstackId", "name", "description", "tenantId", "updatedAt")
+            INSERT INTO "ChirpstackApplication" ("chirpstackAppId", "name", "description", "tenantId", "updatedAt")
             VALUES ${Prisma.join(
                         appChunk.map(
                             (app: any) =>
-                                Prisma.sql`(${app.id}, ${app.name || ""}, ${app.description || ""}, ${dbTenantId}, ${now})`
+                                Prisma.sql`(${app.id}, ${app.name || ""}, ${app.description || ""}, ${tenant.id}, ${now})`
                         )
                     )}
-            ON CONFLICT ("chirpstackId") 
+            ON CONFLICT ("chirpstackAppId") 
             DO UPDATE SET 
               "name" = EXCLUDED."name",
               "description" = EXCLUDED."description",

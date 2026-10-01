@@ -1,5 +1,5 @@
 import { useSetRecoilState } from "recoil";
-import { selectedApplicationState } from "../store/authState";
+import { selectedApplicationState, selectedTenantId } from "../store/authState";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
@@ -29,7 +29,7 @@ const ORANGE = "#E07B2A";
 
 interface Application {
   id: number;
-  chirpstackId: string;
+  chirpstackAppId: string;
   name: string;
   description: string;
   tenantId: number;
@@ -41,6 +41,7 @@ export default function ApplicationPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
   const navigate = useNavigate();
   const setSelectedApplication = useSetRecoilState(selectedApplicationState);
+  //const setselectedTenantId = useSetRecoilState(selectedTenantId);
 
   const [applications, setApplications] = useState<Application[]>([]);
   const [loadingApps, setLoadingApps] = useState(false);
@@ -87,8 +88,8 @@ export default function ApplicationPage() {
   // -------------------------------------------------------------
   const handleApplicationClick = (application: Application) => {
     // Sync state synchronously
-    setSelectedApplication(application.chirpstackId);
-    localStorage.setItem("selectedApplicationId", String(application.chirpstackId));
+    setSelectedApplication(application.chirpstackAppId);
+    localStorage.setItem("selectedApplicationId", String(application.chirpstackAppId));
     localStorage.setItem("selectedApplicationNameForAdmin", application.name);
 
     setNavigating(true);

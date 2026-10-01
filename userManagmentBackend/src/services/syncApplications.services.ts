@@ -3,6 +3,8 @@ import { getApplicationByGrpc } from "./getApplicatonGrpc.services"
 import { syncAllDevices } from "./SyncDevies.services"
 
 export const getApplicationId = async(tenantId:string) =>{
+
+    // this is help me out in getting the applications
     const application = await getApplicationByGrpc(tenantId)
     for(const  app of application.resultList){
         logger.info(`Processing application: ${app.id}`);

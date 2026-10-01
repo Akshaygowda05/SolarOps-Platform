@@ -11,6 +11,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import GroupsIcon from '@mui/icons-material/Groups';
+import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate, useLocation } from "react-router-dom";
 import { fetchSiteConfigStatus } from "../services/User.service";
 import { ColorModeContext } from "../context/ColorModeContext";
@@ -22,7 +23,11 @@ const softPulse = keyframes`
   100% { opacity: 1; }
 `;
 
-function Header() {
+interface HeaderProps {
+  onDrawerToggle?: () => void;
+}
+
+function Header({ onDrawerToggle }: HeaderProps) {
   const user = useRecoilValue(authState);
   const resetAuth = useResetRecoilState(authState);
   const theme = useTheme();
@@ -136,12 +141,20 @@ function Header() {
         </Box>
       )}
 
-      <Toolbar sx={{ justifyContent: "space-between", minHeight: { xs: 56, sm: 64 } }}>
+      <Toolbar sx={{ justifyContent: "space-between", minHeight: { xs: 56, sm: 64 }, px: { xs: 1.5, sm: 2.5 } }}>
         
         {/* Left Side: Logo & Header Label */}
-     {/* Left Side: Logo & Header Label */}
-<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-  <Box
+        <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 2 } }}>
+          <IconButton
+            color="inherit"
+            aria-label="open navigation drawer"
+            edge="start"
+            onClick={onDrawerToggle}
+            sx={{ display: { md: "none" }, color: "text.primary", p: 1 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Box
     onClick={() => {
       // Determine default route based on role
       const defaultRoute = user?.role === "ADMIN" ? "/tenants" : "/dashboard";

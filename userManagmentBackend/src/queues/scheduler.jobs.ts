@@ -4,6 +4,16 @@ import schedulerQueue from "./scheduler.queue";
 import loggers from "../config/logger";
 import { prisma } from "../config/primsaConfig";
 import moment from "moment-timezone";
+import Redlock from 'redlock';
+import { getRedisClient } from "../config/redis";
+
+
+let redis = getRedisClient();
+
+const redlock = new Redlock([redis],{
+  retryCount:0
+
+})
 
 
 class JobSchedulerService {
@@ -109,6 +119,9 @@ async removeDailyJob(id: string) {
   // "yella schedular recover agbeku amele restart admele..." -> Yes! This recovers cleanly.
   async syncAllSchedulers() {
     loggers.info("Starting boot synchronizer step: Rebuilding active scheduler memory...");
+
+    // what if i have 10000 number then it will faill 100 with high usage of the ram and 
+    // what id cp
     const schedulers = await prisma.schedularData.findMany();
 
     for (const scheduler of schedulers) {

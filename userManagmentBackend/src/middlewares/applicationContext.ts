@@ -18,54 +18,35 @@ export async function ApplicationContext(
     // SUPERADMIN
     // =========================
 if (req.role === Role.SUPERADMIN) {
-
     const tenantId = req.get("X-Tenant-Id");
     const applicationId = req.get("X-Application-Id");
-
-    // --------------------------------
-    // Nothing selected
-    // --------------------------------
     if (!tenantId && !applicationId) {
         return next();
     }
-
-    // --------------------------------
-    // Application without tenant
-    // --------------------------------
     if (applicationId && !tenantId) {
         throw new AppError(
             "Tenant ID is required when selecting an application",
             StatusCodes.BAD_REQUEST
         );
     }
-
-    // --------------------------------
-    // Tenant selected
-    // --------------------------------
-
-    // so users is superadmin then anyhow if we will have 
-    // every tenant then i dont check everything 
     if (tenantId && !applicationId) {
         req.tenantId = tenantId;
 
         return next();
     }
-
-    // --------------------------------
-    // Tenant + application selected
-    // --------------------------------
+// again ineed to confirm that application belongs to the tenant before setting the applicationId in the request object 
     if (tenantId && applicationId) {
 
         const application =
             await prisma.chirpstackApplication.findFirst({
                 where: {
-                    chirpstackId: applicationId,
+                    chirpstackAppId: applicationId,
                     tenant: {
-                        chirpstackId: tenantId,
+                        chirpstackTenantId: tenantId,
                     },
                 },
                 select: {
-                    chirpstackId: true,
+                    chirpstackAppId: true,
                 },
             });
 
@@ -77,16 +58,12 @@ if (req.role === Role.SUPERADMIN) {
         }
 
         req.tenantId = tenantId;
-        req.applicationId = application.chirpstackId;
+        req.applicationId = application.chirpstackAppId;
 
         return next();
     }
 }
 
-
-  // =========================
-    // ADMIN
-    // =========================
 
 if (req.role === Role.ADMIN) {
   const tenantId = req.tenantId;
@@ -105,11 +82,11 @@ if (req.role === Role.ADMIN) {
 
   const application = await prisma.chirpstackApplication.findFirst({
     where: {
-      chirpstackId: applicationId,
+      chirpstackAppId: applicationId,
       tenantId: tenantId,
     },
     select: {
-      chirpstackId: true,
+      chirpstackAppId: true,
     },
   });
 
@@ -120,15 +97,12 @@ if (req.role === Role.ADMIN) {
     );
   }
 
-  req.applicationId = application.chirpstackId;
+  req.applicationId = application.chirpstackAppId;
 
   return next();
 }
 
 
-    // =========================
-    // USER
-    // =========================
     if (req.role === Role.USER) {
 
       if (!req.applicationId) {

@@ -70,12 +70,12 @@ export class UserService {
         }
 
         const dbApp = await prisma.chirpstackApplication.findUnique({
-          where: { chirpstackId: applicationIdInput },
-          select: { chirpstackId: true },
+          where: { chirpstackAppId: applicationIdInput },
+          select: { chirpstackAppId: true },
         });
 
         if (dbApp) {
-          appId = dbApp.chirpstackId;
+          appId = dbApp.chirpstackAppId;
         } else {
           const result = await apiClient.get(`/api/applications/${applicationIdInput}`);
           
@@ -268,7 +268,7 @@ static async updateUser(
     // Application ID
     if (data.applicationId !== undefined) {
       const app = await prisma.chirpstackApplication.findUnique({
-        where: { chirpstackId: data.applicationId },
+        where: { chirpstackAppId: data.applicationId },
       });
 
       if (!app) {
@@ -460,7 +460,7 @@ return {
   }
 }
 
-        
+
       }
     } catch (error) {
       loggers.error('Error fetching global application dataset layout logs:', error);

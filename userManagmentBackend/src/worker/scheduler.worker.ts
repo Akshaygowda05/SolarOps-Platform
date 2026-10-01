@@ -22,11 +22,11 @@ interface SchedulerJobData {
 
 const worker = new Worker<SchedulerJobData>(
   "schedulerQueue",
-  async (job: Job<SchedulerJobData>) => {
-    loggers.info(`🔥 Running Job: ${job.name}`);
-    loggers.info(`Job data: ${JSON.stringify(job.data)}`);  
+    async (job: Job<SchedulerJobData>) => {
+      loggers.info(`🔥 Running Job: ${job.name}`);
+      loggers.info(`Job data: ${JSON.stringify(job.data)}`);  
 
-    const {
+      const {
   schedulerId,
   applicationId,
 } = job.data;

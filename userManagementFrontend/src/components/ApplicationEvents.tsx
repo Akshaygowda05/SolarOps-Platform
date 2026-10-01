@@ -89,22 +89,28 @@ export const ApplicationEvents = () => {
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", flexDirection: "column", width: "100%", minWidth: 0 }}>
         {events.map((ev, i) => (
-          <div key={i}>
+          <div key={i} style={{ minWidth: 0 }}>
             <div
               onClick={() => setExpanded(expanded === i ? null : i)}
               style={{
-                display: "grid", gridTemplateColumns: "100px 1fr auto",
-                alignItems: "start", gap: 10, padding: "8px 10px",
-                borderRadius: 6, cursor: "pointer", transition: "background 0.15s",
+                display: "grid", 
+                gridTemplateColumns: "auto 1fr auto",
+                alignItems: "center", 
+                gap: 8, 
+                padding: "8px 8px",
+                borderRadius: 6, 
+                cursor: "pointer", 
+                transition: "background 0.15s",
+                minWidth: 0,
               }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,0,0,0.03)")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
-              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3, flexShrink: 0 }}>
                 <span style={{
-                  fontSize: 9, fontWeight: 500, padding: "2px 7px",
+                  fontSize: 9, fontWeight: 600, padding: "2px 7px",
                   borderRadius: 20, display: "inline-block", whiteSpace: "nowrap",
                   ...getBadgeStyle(ev.type),
                 }}>
@@ -112,39 +118,53 @@ export const ApplicationEvents = () => {
                 </span>
                 {i === 0 && (
                   <span style={{
-                    fontSize: 9, fontWeight: 500, padding: "2px 6px",
+                    fontSize: 9, fontWeight: 600, padding: "1px 6px",
                     borderRadius: 20, background: "rgba(22,150,71,0.12)",
-                    color: "#169647", display: "inline-block",
+                    color: "#169647", display: "inline-block", textAlign: "center",
                   }}>new</span>
                 )}
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <code style={{ fontSize: 12, color: "var(--color-text-primary)" }}>{ev.name}</code>
-               
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0, overflow: "hidden" }}>
+                <code 
+                  title={ev.name || ev.message}
+                  style={{ 
+                    fontSize: 12, 
+                    color: "inherit",
+                    display: "block",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {ev.name || ev.message || "Event"}
+                </code>
               </div>
 
-              <span style={{ fontSize: 10, color: "var(--color-text-tertiary)", whiteSpace: "nowrap", paddingTop: 2 }}>
+              <span style={{ fontSize: 10, color: "var(--color-text-tertiary, #888)", whiteSpace: "nowrap", flexShrink: 0 }}>
                 {formatRelative(ev.timeStamp)}
               </span>
             </div>
 
             {expanded === i && (
               <pre style={{
-                margin: "0 10px 6px", padding: "8px 10px",
+                margin: "0 8px 6px", padding: "8px 10px",
                 background: "rgba(0,0,0,0.03)",
-                border: "0.5px solid var(--color-border-tertiary)",
+                border: "0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1))",
                 borderRadius: 6, fontSize: 10,
                 fontFamily: "var(--font-mono, monospace)",
-                color: "var(--color-text-secondary)",
-                overflowX: "auto", lineHeight: 1.5,
+                color: "inherit",
+                overflowX: "auto", 
+                maxWidth: "100%",
+                boxSizing: "border-box",
+                lineHeight: 1.5,
               }}>
                 {JSON.stringify(ev, null, 2)}
               </pre>
             )}
 
             {i < events.length - 1 && (
-              <div style={{ height: "0.5px", background: "var(--color-border-tertiary)", margin: "1px 0" }} />
+              <div style={{ height: "1px", background: "rgba(0,0,0,0.06)", margin: "1px 0" }} />
             )}
           </div>
         ))}

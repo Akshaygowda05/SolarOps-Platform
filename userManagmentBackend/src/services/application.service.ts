@@ -8,7 +8,7 @@ export async function getApplicationService(tenantID: string) {
   try {
     const tenant = await prisma.chirpstackTenant.findUnique({
       where: {
-        chirpstackId: tenantID,
+        chirpstackTenantId: tenantID,
       },
       include: {
         applications: true,

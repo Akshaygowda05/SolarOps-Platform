@@ -17,7 +17,7 @@ import { selectedApplicationStateForAdmin } from "../../../store/authState";
 
 interface Application {
   id: number;
-  chirpstackId: string;
+  chirpstackAppId: string;
   name: string;
   description: string;
   TotalDeviceCount: number;
@@ -89,8 +89,8 @@ export default function ApplicationSelector() {
         
         {applications.map((app) => (
           <MenuItem
-            key={app.chirpstackId}
-            value={app.chirpstackId}
+            key={app.chirpstackAppId}
+            value={app.chirpstackAppId}
           >
             <Box
          

@@ -2,7 +2,7 @@ import { atom } from "recoil";
 
 export interface User{
     name: string;
-    role: 'ADMIN' | 'USER' | undefined;
+    role: 'ADMIN' | 'USER' | 'SUPERADMIN' | undefined;
     token: string | undefined;
     siteName?: string;
     initialized: boolean;
@@ -21,5 +21,10 @@ export const selectedApplicationState = atom<string | null>({
 export const selectedApplicationStateForAdmin =  atom<string |null>({
   key:"selectedAdminApp",
   default:"ALL"
+})
+
+export const selectedTenantId = atom<string | null>({
+  key:"selecedTenant",
+  default:null
 })
 

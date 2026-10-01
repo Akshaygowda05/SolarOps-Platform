@@ -61,6 +61,7 @@ chripstackRouter.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const applicationId = (req as CustomRequest).applicationId;
+      console.log("Application ID from request:", applicationId); // Debug log to check the application ID
 
       if (!applicationId) {
         throw new AppError(
@@ -279,7 +280,9 @@ chripstackRouter.get('/multicast-groups', authenticate,ApplicationContext,async 
 chripstackRouter.get('/ApplicationGateways',authenticate,ApplicationContext,async(req: Request,res: Response)=>{
     try {
 
-        const applicationId = (req as CustomRequest).applicationId;
+        const applicationId = req.applicationId;
+
+        console.log("Application ID from request:", applicationId); // Debug log to check the application ID
         if(!applicationId){
             throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
         }
@@ -288,7 +291,7 @@ chripstackRouter.get('/ApplicationGateways',authenticate,ApplicationContext,asyn
 
         const tenantRes = await  prisma.chirpstackApplication.findFirst({
             where:{
-                chirpstackId: applicationId
+                chirpstackAppId: applicationId
             },include:{
               tenant:true,
               siteConfiguration:true 
@@ -300,7 +303,7 @@ chripstackRouter.get('/ApplicationGateways',authenticate,ApplicationContext,asyn
 }
 
 
-  let teneantId = tenantRes?.tenant.chirpstackId;
+  let teneantId = tenantRes?.tenant.chirpstackTenantId;
     const configGateway = tenantRes?.siteConfiguration?.gatewayId || [];
   
   //console.log("Tenant ID for the application:", teneantId); // Debug log to check the tenant ID
@@ -347,13 +350,13 @@ chripstackRouter.get('/allGateways',authenticate,ApplicationContext,async(req: R
 
         const tenean = await  prisma.chirpstackApplication.findFirst({
             where:{
-                chirpstackId: applicationId
+                chirpstackAppId: applicationId
             },include:{
               tenant:true
             }
         })
 
-  let teneantId = tenean?.tenant.chirpstackId;
+  let teneantId = tenean?.tenant.chirpstackTenantId;
   
   //console.log("Tenant ID for the application:", teneantId); // Debug log to check the tenant ID
       

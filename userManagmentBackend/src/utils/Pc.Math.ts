@@ -28,7 +28,7 @@ export async function calculatePanelsCleaned(
     } else {
     
       const app = await prisma.chirpstackApplication.findUnique({
-        where: { chirpstackId: applicationId },
+        where: { chirpstackAppId: applicationId },
         include: { siteConfiguration: true }
       });
 

@@ -27,7 +27,7 @@ class DashboardService {
         COUNT(*) FILTER (WHERE ds."isOnline" = true) AS online
       FROM "DeviceState" ds
       JOIN "ChirpstackApplication" ca
-        ON ca."chirpstackId" = ds."applicationId"
+        ON ca."chirpstackAppId" = ds."applicationId"
       WHERE ca."status" IN (${Status.ACTIVE}::"Status", ${Status.PENDING}::"Status");
     `;
 
@@ -51,7 +51,7 @@ class DashboardService {
         SUM(rb."panelsCleaned")::int AS "panelsCleaned"
       FROM "RobotData" rb
       JOIN "ChirpstackApplication" ca
-        ON ca."chirpstackId" = rb."applicationId"
+        ON ca."chirpstackAppId" = rb."applicationId"
       WHERE ca."status" IN (${Status.ACTIVE}::"Status", ${Status.PENDING}::"Status")
         AND rb."createdAt" >= CURRENT_DATE - INTERVAL '5 days'
         AND rb."createdAt" < CURRENT_DATE
@@ -72,7 +72,7 @@ class DashboardService {
         SUM(rb."panelsCleaned")::int AS "panelsCleaned"
       FROM "RobotData" rb
       JOIN "ChirpstackApplication" ca
-        ON ca."chirpstackId" = rb."applicationId"
+        ON ca."chirpstackAppId" = rb."applicationId"
       WHERE ca."status" IN (${Status.ACTIVE}::"Status", ${Status.PENDING}::"Status")
         AND rb."createdAt" >= CURRENT_DATE
         AND rb."createdAt" < CURRENT_DATE + INTERVAL '1 day'
@@ -97,7 +97,7 @@ class DashboardService {
       LEFT JOIN "RobotData" rb
         ON DATE_TRUNC('month', rb."createdAt") = month.month
       LEFT JOIN "ChirpstackApplication" ca
-        ON ca."chirpstackId" = rb."applicationId"
+        ON ca."chirpstackAppId" = rb."applicationId"
         AND ca."status" IN (${Status.ACTIVE}::"Status", ${Status.PENDING}::"Status")
 
       GROUP BY month.month
@@ -122,7 +122,7 @@ class DashboardService {
       LEFT JOIN "RobotData" rb
         ON DATE_TRUNC('year', rb."createdAt") = year.year
       LEFT JOIN "ChirpstackApplication" ca
-        ON ca."chirpstackId" = rb."applicationId"
+        ON ca."chirpstackAppId" = rb."applicationId"
         AND ca."status" IN (${Status.ACTIVE}::"Status", ${Status.PENDING}::"Status")
 
       GROUP BY year.year

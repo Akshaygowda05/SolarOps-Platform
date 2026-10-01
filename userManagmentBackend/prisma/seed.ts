@@ -27,7 +27,7 @@ async function seedAdmin() {
       email,
       password: hashedPassword,
       name,
-      role: Role.ADMIN,
+      role: Role.SUPERADMIN,
     },
   });
 
