@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { siteConfigService } from '../services/siteConfiguration';
+import AppError from '../utils/AppError';
+import { StatusCodes } from 'http-status-codes';
 
 class siteConfigController {
     async getSiteConfig(req: Request, res: Response, next: NextFunction) {
@@ -27,6 +29,10 @@ class siteConfigController {
     async getstatus(req: Request, res: Response, next: NextFunction) {
         try {
             const applicationId = (req as any).applicationId;
+            if (!applicationId) {
+                throw new AppError('Application context is required', StatusCodes.BAD_REQUEST);
+            }
+
             const status = await siteConfigService.getStatus(applicationId);
             res.json(status);
         } catch (error) {

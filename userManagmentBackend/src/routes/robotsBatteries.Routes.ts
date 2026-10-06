@@ -10,9 +10,6 @@ import { ApplicationContext } from "../middlewares/applicationContext";
 
 const redis = getRedisClient();
 
-
-
-
 const robotsBatteriesRouter = express.Router();
 
 

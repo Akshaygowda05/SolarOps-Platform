@@ -13,12 +13,12 @@ export default function AdminApplicationGuard({
     localStorage.getItem("auth") || "{}"
   );
 
-  if (auth.role === "ADMIN") {
+  if (auth.role === "ADMIN" || auth.role === "SUPERADMIN") {
     const appId =
       localStorage.getItem("selectedApplicationId");
 
     if (!appId) {
-      return <Navigate to="/admin" replace />;
+      return <Navigate to={auth.role === "SUPERADMIN" ? "/tenants" : "/admin"} replace />;
     }
   }
 

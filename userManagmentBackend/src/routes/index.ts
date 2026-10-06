@@ -14,7 +14,7 @@ import reportRouter from "./report.routes";
 import Schedularrouter from "./schedular.Routes";
 import tenantRoutes from "./tenant.route";
 import ApplicationRouter from "./application.route";
-import adminRouter from "./admin.router";
+import adminRouter from "./Superadmin.router";
 import syncallRouter from "./syncAll.router"
 
 router.use('/api',userRoutes);

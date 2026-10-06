@@ -96,9 +96,11 @@ function Header({ onDrawerToggle }: HeaderProps) {
     navigate("/tenants");
   };
 
+  const isAdminOrSuperAdmin = user?.role === "ADMIN" || user?.role === "SUPERADMIN";
+
   return (
     <AppBar 
-      position="fixed" 
+      position="static" 
       elevation={0}
       sx={{ 
         background: theme.palette.mode === 'light' 
@@ -107,7 +109,8 @@ function Header({ onDrawerToggle }: HeaderProps) {
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid",
         borderColor: "divider",
-        zIndex: 1201 
+        zIndex: 1100,
+        flexShrink: 0,
       }}
     >
       {/* 1. TOP SYSTEM ALERT BANNER */}
@@ -116,25 +119,27 @@ function Header({ onDrawerToggle }: HeaderProps) {
           sx={{
             bgcolor: "warning.main",
             color: "warning.contrastText",
-            py: 0.5,
+            py: 0.75,
+            px: 2,
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
             gap: 1,
-            cursor: user?.role === "ADMIN" ? "pointer" : "default",
+            cursor: isAdminOrSuperAdmin ? "pointer" : "default",
+            transition: "background-color 0.2s ease",
             "&:hover": {
-              bgcolor: user?.role === "ADMIN" ? "warning.dark" : "warning.main",
+              bgcolor: isAdminOrSuperAdmin ? "warning.dark" : "warning.main",
             },
           }}
           onClick={
-            user?.role === "ADMIN"
+            isAdminOrSuperAdmin
               ? () => navigate("/site-config")
               : undefined
           }
         >
-          <FiAlertCircle size={14} />
-          <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
-            {user?.role === "ADMIN"
+          <FiAlertCircle size={15} style={{ flexShrink: 0 }} />
+          <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.5, textAlign: "center" }}>
+            {isAdminOrSuperAdmin
               ? "SYSTEM NOT CONFIGURED: CLICK HERE TO COMPLETE SETUP"
               : "SYSTEM NOT CONFIGURED: PLEASE CONTACT YOUR ADMINISTRATOR TO COMPLETE THE SITE SETUP"}
           </Typography>
@@ -155,15 +160,15 @@ function Header({ onDrawerToggle }: HeaderProps) {
             <MenuIcon />
           </IconButton>
           <Box
-    onClick={() => {
-      // Determine default route based on role
-      const defaultRoute = user?.role === "ADMIN" ? "/tenants" : "/dashboard";
-      if (location.pathname === defaultRoute) {
-        window.location.reload(); // Refresh if already on the root home page
-      } else {
-        navigate(defaultRoute); // Navigate to main dashboard/landing page
-      }
-    }}
+            onClick={() => {
+              // Determine default route based on role
+              const defaultRoute = isAdminOrSuperAdmin ? "/tenants" : "/dashboard";
+              if (location.pathname === defaultRoute) {
+                window.location.reload(); // Refresh if already on the root home page
+              } else {
+                navigate(defaultRoute); // Navigate to main dashboard/landing page
+              }
+            }}
     sx={{
       cursor: "pointer",
       display: "flex",

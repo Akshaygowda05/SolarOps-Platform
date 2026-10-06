@@ -34,15 +34,3 @@ async function seedAdmin() {
   console.log(`✅ Admin user ensured: ${email}`);
 }
 
-async function main() {
-  try {
-    await seedAdmin();
-    console.log("🌱 Database seeding completed");
-  } catch (err) {
-    console.error("❌ Seeding failed:", err);
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-
-main();

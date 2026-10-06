@@ -122,6 +122,9 @@ if (req.role === Role.ADMIN) {
     );
 
   } catch (error) {
-    next(error);
+    throw new AppError(
+      "Error in application context middleware",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
   }
 }

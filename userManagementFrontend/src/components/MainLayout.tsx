@@ -11,22 +11,40 @@ function MainLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
+        bgcolor: "background.default",
+      }}
+    >
       <Header onDrawerToggle={handleDrawerToggle} />
-      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
       <Box
-        component="main"
         sx={{
-          ml: { xs: 0, md: "240px" },
-          mt: { xs: "56px", sm: "64px" },
-          p: { xs: 1.5, sm: 2, md: 3 },
-          minHeight: { xs: "calc(100vh - 56px)", sm: "calc(100vh - 64px)" },
-          transition: "margin 0.2s ease",
-          boxSizing: "border-box",
+          display: "flex",
+          flexGrow: 1,
+          minHeight: 0,
+          overflow: "hidden",
+          position: "relative",
         }}
       >
-        {children}
+        <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            p: { xs: 1.5, sm: 2, md: 3 },
+            boxSizing: "border-box",
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Box>
   );

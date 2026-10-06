@@ -35,6 +35,8 @@ const LoginForm = () => {
   const isDarkMode = theme.palette.mode === "dark";
 
   const handleLogin = async () => {
+    console.log(email, password);
+    
     const cleanEmail = email.trim();
     const cleanPassword = password.trim();
 
@@ -48,6 +50,8 @@ const LoginForm = () => {
       setErrorMessage("");
 
       const res = await login(cleanEmail, cleanPassword);
+      console.log(res.data,"response data");
+      
 
       const { token, name, role, siteName } = res.data;
 

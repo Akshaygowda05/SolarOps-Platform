@@ -28,7 +28,7 @@ model RobotData {
   batteryDischargeCycle  Float
   batteryVoltage         Float
   applicationId          String
- // application  ChirpstackApplication@relation(fields: [applicationId], references: [chirpstackAppId])
+  application  ChirpstackApplication@relation(fields: [applicationId], references: [chirpstackAppId])
   tenantId               String
   error                  String?
 
@@ -65,12 +65,7 @@ model DeviceState {
 }
 
 
-// model DashboardSnapshot {
-//   id Int @id @default(autoincrement())
 
-//   TotalOnlineCount Int
-
-// }
 
 model GatewayState {
   id Int @id @default(autoincrement())
@@ -128,7 +123,7 @@ model ChirpstackApplication {
   name           String
   description    String?
 
- // robotData     RobotData[]
+  robotData     RobotData[]
   devicesState  DeviceState[]
 
   tenantId       String

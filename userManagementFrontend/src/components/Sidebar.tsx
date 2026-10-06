@@ -123,20 +123,17 @@ function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         {sidebarNavContent}
       </Drawer>
 
-      {/* Desktop Fixed Sidebar */}
+      {/* Desktop Sidebar */}
       <Box
         sx={{
-          position: "fixed",
-          top: { xs: 56, sm: 64 },
-          left: 0,
-          height: { xs: "calc(100vh - 56px)", sm: "calc(100vh - 64px)" },
-          width: "240px",
+          width: 240,
+          flexShrink: 0,
+          height: "100%",
           bgcolor: "background.paper",
           borderRight: "1px solid",
           borderColor: "divider",
           display: { xs: "none", md: "flex" },
           flexDirection: "column",
-          zIndex: 100,
           transition: "all 0.3s ease",
         }}
       >

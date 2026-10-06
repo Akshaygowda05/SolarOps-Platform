@@ -5,7 +5,9 @@ import { api } from "./api"
 
  // this is for the login
 export const login = async(email:string, password:string)=>{
-    return await api.post("/v1/user/login", {email, password});
+    console.log("i am inside this login form")
+    const result = await api.post("/v1/user/login", {email, password});
+    return result
 }
 
 

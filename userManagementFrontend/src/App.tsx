@@ -36,7 +36,7 @@ import './index.css';
 
 // Layout Wrapper
 const ProtectedAppLayout = () => (
-  <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
+  <ProtectedRoute allowedRoles={["USER", "ADMIN","SUPERADMIN"]}>
     <AdminApplicationGuard>
       <MainLayout>
         <Outlet />
@@ -106,7 +106,7 @@ function App() {
 
             {/* Guarded without AdminApplicationGuard */}
             <Route element={
-              <ProtectedRoute allowedRoles={["USER","SUPERADMIN"]}>
+              <ProtectedRoute allowedRoles={["USER", "ADMIN", "SUPERADMIN"]}>
                 <MainLayout>
                   <Outlet />
                 </MainLayout>
