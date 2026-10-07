@@ -16,6 +16,7 @@ interface userData {
   password: string;
   role: Role;
   applicationId: number | undefined;
+  tenantId: string | undefined;
 }
 
 export class UserService {
@@ -64,6 +65,8 @@ export class UserService {
 
       let appId: string | null = null;
 
+
+      // this is for somethin like either admin or super can create this but 
       if (data.role === Role.USER) {
         if (!applicationIdInput) {
           throw new AppError('Application ID is required for standard USER role models.', StatusCodes.BAD_REQUEST);
@@ -87,7 +90,7 @@ export class UserService {
           appId = String(result.data.application.id).trim();
         }
       }
-
+ 
       const hashedPassword = await bcrypt.hash(data.password, 10);
 
       if (existingUser) {
@@ -504,6 +507,107 @@ return {
       throw error;
     }
   }
-}
 
+  static async getTenantUsers(tenantId: string, page = 1, limit = 10) {
+    try{
+      const skip = (page - 1) * limit;
+
+      const [users, totalCount] = await Promise.all([
+        prisma.user.findMany({
+          where: { tenantId },
+          select:{
+            id:true,
+            name:true,
+            email:true,
+            role:true,
+            isActive:true,
+            applicationName:true,
+
+          },
+          skip,
+          take: limit,
+          orderBy: {
+            createdAt: 'desc',
+          },
+        }),
+        prisma.user.count({
+          where: { tenantId },
+        })
+      ]); 
+
+    
+      return {
+        data: users,
+        pagination: {
+          totalCount,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCount / limit),
+        }
+      };
+    } catch (error) {
+      loggers.error('Error fetching tenant users:', error);
+      throw error;
+    }
+  }
+
+  static async createTenantUser(tenantId: string, data: userData) {
+    try {
+      if (!data.email || !data.password ) {
+        throw new AppError('Missing required fields', StatusCodes.BAD_REQUEST);
+      }
+
+      const email = data.email.trim().toLowerCase();
+      let  applicationIdInput = data.applicationId ? String(data.applicationId).trim() : null;
+
+      if(!applicationIdInput){
+        throw new AppError('Application ID is required for tenant user creation.', StatusCodes.BAD_REQUEST);
+      }
+
+      const isApplicationValid = await prisma.chirpstackApplication.findFirst({
+        where: {
+          chirpstackAppId: applicationIdInput,
+          tenantId: tenantId
+        },select:{
+          maxUserCount:true,
+        },
+      });
+
+      if (!isApplicationValid) {
+        // try to fetch from the chripstack api and then sync the data
+        // now this api will give all related to tenant application
+       const result = await apiClient.get(`/api/applications/${tenantId}`);
+         const applications = result.data?.result.find((app: any) => app.id === applicationIdInput) || null;
+
+    
+      if(!applications){
+        throw new AppError('Invalid application ID for the specified tenant.', StatusCodes.BAD_REQUEST);
+      }else{
+        applicationIdInput = applications.id;
+      syncChirpstackData();
+      }
+    }
+     
+
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      })
+
+      if (existingUser) {
+        throw new AppError('User account already exists.', StatusCodes.BAD_REQUEST);
+      }
+
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+
+      
+    
+
+
+
+    } catch (error) {
+      loggers.error('Error creating tenant user:', error);
+      throw error;
+    }
+
+}
 export const userService = UserService;

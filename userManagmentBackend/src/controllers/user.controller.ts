@@ -10,7 +10,7 @@ export class UserController {
     static async createUser(req: Request, res: Response, next: NextFunction) {
         try {
             const userData = req.body;
-            console.log('Received user data for creation:', userData); // Debug log
+           // console.log('Received user data for creation:', userData); // Debug log
             if (!userData) {
 
                 throw new AppError('Request body is required', StatusCodes.BAD_REQUEST);
@@ -19,6 +19,10 @@ export class UserController {
 
             if(userData.role === 'USER' && (!userData.applicationId || !userData.siteName) ){
                 throw new AppError('Application ID and Site Name are required for USER role', StatusCodes.BAD_REQUEST);
+            }
+
+            if(userData.role === 'ADMIN' && !userData.tenantId){
+                throw new AppError('Tenant ID is required for ADMIN role', StatusCodes.BAD_REQUEST);
             }
             const user = await userService.CreateUser(userData);
             res.status(201).json(user);
@@ -104,23 +108,7 @@ export class UserController {
 
     }
 
-    // this is for the admin and super admin only 
-
-    static async getAllUsers(req: Request, res: Response, next: NextFunction) {
-        try {
-            const page = Number(req.query.page) || 1;
-            const limit = Number(req.query.limit) || 10;
-            const role = req.role as Role
-            const tenant = req.tenantId 
-            //const application = req.applicationId
-
-            const result = await userService.getAllUsers(page, limit,role,tenant);
-
-            res.json(result);
-        } catch (error) {
-            next(error);// this will pass the error to the global error handler
-        }
-    }
+  
 
     
 
@@ -137,6 +125,33 @@ export class UserController {
         }
     }
 
+      // this is for  super admin only 
+
+    static async getAllUsers(req: Request, res: Response, next: NextFunction) {
+        try {
+            const page = Number(req.query.page) || 1;
+            const limit = Number(req.query.limit) || 10;
+            const role = req.role as Role
+            const tenant = req.tenantId 
+            //const application = req.applicationId
+
+            const result = await userService.getAllUsers(page, limit,role,tenant);
+
+            res.json(result);
+        } catch (error) {
+            next(error);// this will pass the error to the global error handler
+        }
+    }
+    
+
+    // this of the admin and super admin only to get the users based on the tenant level
+
+    static async getUsersByTenant(req: Request, res: Response, next: NextFunction) {
+     
+    }
+
+
+  
  
 }
 

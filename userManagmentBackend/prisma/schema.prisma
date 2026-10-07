@@ -129,6 +129,7 @@ model ChirpstackApplication {
   tenantId       String
   tenant         ChirpstackTenant @relation(fields: [tenantId], references: [chirpstackTenantId], onDelete: Cascade)
   users          User[]
+  maxUserCount    Int?  @default(2) // this is for the max user count for that application
   siteConfiguration SiteConfiguration?
   SchedularData  SchedularData[]   
   status  Status@default(NONE) // this is to check what is what status of that site
@@ -148,6 +149,7 @@ model ChirpstackTenant {
 
   applications  ChirpstackApplication[]
   users          User[]
+  maxUserCount    Int?  @default(2) 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

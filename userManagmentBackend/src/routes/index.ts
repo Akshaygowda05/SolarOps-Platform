@@ -14,8 +14,10 @@ import reportRouter from "./report.routes";
 import Schedularrouter from "./schedular.Routes";
 import tenantRoutes from "./tenant.route";
 import ApplicationRouter from "./application.route";
-import adminRouter from "./Superadmin.router";
+import adminRouter from "./admin.roter";
+
 import syncallRouter from "./syncAll.router"
+import SuperadminRouter from "./Superadmin.router";
 
 router.use('/api',userRoutes);
 router.use('/api',chripstackRouter);
@@ -28,7 +30,7 @@ router.use('/api',reportRouter);
 router.use('/api',Schedularrouter);
 router.use('/api',tenantRoutes);
 router.use('/api',ApplicationRouter);
-router.use('/api',adminRouter,syncallRouter);
+router.use('/api',SuperadminRouter,syncallRouter,adminRouter);
 
 
 

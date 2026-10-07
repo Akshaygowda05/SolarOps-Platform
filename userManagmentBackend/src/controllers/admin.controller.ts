@@ -108,5 +108,32 @@ class adminController {
                     StatusCodes.BAD_REQUEST
                 );
             }
-            const  
- }
+        const  result = await adminService.getGatewayStats(tenantId);
+        res.status(StatusCodes.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getApplicationStatsController(req: Request, res: Response, next: NextFunction) {
+        try{ 
+
+            const tenantId = req.tenantId as string;
+            if (!tenantId) {
+                throw new AppError(
+                    "tenantId is required",
+                    StatusCodes.BAD_REQUEST
+                );
+            }
+
+            const result = await adminService.getApplicationStats(tenantId);
+            res.status(StatusCodes.OK).json(result);
+    }catch (error) {
+        next(error)
+    }
+
+}
+
+}
+
+export const adminControllerInstance = new adminController();

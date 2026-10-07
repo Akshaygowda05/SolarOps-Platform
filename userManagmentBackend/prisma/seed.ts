@@ -18,7 +18,7 @@ async function seedAdmin() {
   const password = process.env.ADMIN_PASSWORD!;
   const name = process.env.ADMIN_NAME!;
 
-  const hashedPassword = await bcrypt.hash(password, 12);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   await prisma.user.upsert({
     where: { email },
